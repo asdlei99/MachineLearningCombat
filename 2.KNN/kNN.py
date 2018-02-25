@@ -21,68 +21,65 @@ Counter.most_common(n)
 返回出现前n个次数最多的
 """
 
-def Test():
-    def createDataSet():
-        """
-        Desc:
-            创建数据集和标签
-        Args:
-            None
-        Returns:
-            group -- 训练数据集的 features
-            labels -- 训练数据集的 labels
-        """
-        group = np.array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
-        labels = ['A', 'A', 'B', 'B']
-        return group, labels
+def createDataSet():
+    """
+    Desc:
+        创建数据集和标签
+    Args:
+        None
+    Returns:
+        group -- 训练数据集的 features
+        labels -- 训练数据集的 labels
+    """
+    group = np.array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
+    labels = ['A', 'A', 'B', 'B']
+    return group, labels
 
+def classify0(inX, dataSet, labels, k):
+    """
+    Desc:
+        kNN 的分类函数
+    Args:
+        inX -- 用于分类的输入向量/测试数据
+        dataSet -- 训练数据集的 features
+        labels -- 训练数据集的 labels
+        k -- 选择最近邻的数目
+    Returns:
+        sortedClassCount[0][0] -- 输入向量的预测分类 labels
 
-    def classify0(inX, dataSet, labels, k):
-        """
-        Desc:
-            kNN 的分类函数
-        Args:
-            inX -- 用于分类的输入向量/测试数据
-            dataSet -- 训练数据集的 features
-            labels -- 训练数据集的 labels
-            k -- 选择最近邻的数目
-        Returns:
-            sortedClassCount[0][0] -- 输入向量的预测分类 labels
+    # 1. 距离计算, 公式$\sqrt((A1-A2)^2+(B1-B2)^2+(C1-C2)^2+...)$
+    # inX生成和训练样本对应的矩阵，并与训练样本求差
+    dataSetSize = dataSet.shape[0]
+    diffMat = np.tile(inX, (dataSetSize, 1)) - dataSet
+    # 取平方
+    sqDiffMat = diffMat ** 2
+    #　求和
+    sqDistances = sqDiffMat.sum(axis=1)
+    # 开方
+    distances = sqDistances ** 0.5
+    # 从小到大进行排序，返回索引位置
+    sortedDistIndicies = distances.argsort()
+    # 2. 选择距离最小的k个点
+    classCount = {}
+    for i in range(k):
+        # 找到该样本的类型, 并在字典中将该类型加一
+        voteIlabel = labels[sortedDistIndicies[i]]
+        classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
+    # 3. 排序并返回出现最多的那个类型
+    sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
+    return sortedClassCount[0][0]
+    """
+    # 步骤： 计算距离，选取距离最小的k个点，返回出现最多的类型
+    dist = np.sum((inX - dataSet)**2, axis=1)**0.5
+    k_labels = [labels[index] for index in dist.argsort()[:k]]
+    label = Counter(k_labels).most_common(1)[0][0]
+    return label
 
-        # 1. 距离计算, 公式$\sqrt((A1-A2)^2+(B1-B2)^2+(C1-C2)^2+...)$
-        # inX生成和训练样本对应的矩阵，并与训练样本求差
-        dataSetSize = dataSet.shape[0]
-        diffMat = np.tile(inX, (dataSetSize, 1)) - dataSet
-        # 取平方
-        sqDiffMat = diffMat ** 2
-        #　求和
-        sqDistances = sqDiffMat.sum(axis=1)
-        # 开方
-        distances = sqDistances ** 0.5
-        # 从小到大进行排序，返回索引位置
-        sortedDistIndicies = distances.argsort()
-        # 2. 选择距离最小的k个点
-        classCount = {}
-        for i in range(k):
-            # 找到该样本的类型, 并在字典中将该类型加一
-            voteIlabel = labels[sortedDistIndicies[i]]
-            classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
-        # 3. 排序并返回出现最多的那个类型
-        sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
-        return sortedClassCount[0][0]
-        """
-        # 步骤： 计算距离，选取距离最小的k个点，返回出现最多的类型
-        dist = np.sum((inX - dataSet)**2, axis=1)**0.5
-        k_labels = [labels[index] for index in dist.argsort()[:k]]
-        label = Counter(k_labels).most_common(1)[0][0]
-        return label
-
+def test():
     group, labels = createDataSet()
     print(group)
     print(labels)
     print(classify0([0.1, 0.1], group, labels, 3))
-
-    
 
 def file2matrix(filename):
     """
@@ -90,28 +87,25 @@ def file2matrix(filename):
     :param filename: 数据文件路径
     :return: 数据矩阵returnMat和对应的类别classLabelVector
     """
-    fr = open(filename, 'r')
-    # 获得文件中的数据行的行数
-    numberOfLines = len(fr.readlines())
-    # 生成对应的空矩阵
-    # 例如：zeros(2，3)就是生成一个 2*3 的矩阵，各个位置上全是 0 
-    returnMat = np.zeros((numberOfLines, 3))  # prepare matrix to return
-    classLabelVector = []  # prepare labels return
-    fr = open(filename, 'r')
+    with open(filename, 'r') as fr:
+        # 获得文件中的数据行的行数
+        numberOfLines = len(fr.readlines())
+    # 生成对应的零矩阵
+    returnMat = np.zeros((numberOfLines, 3)) 
+    # print(returnMat)
+    classLabelVector = []
     index = 0
-    for line in fr.readlines():
-        # str.strip([chars]) --返回移除字符串头尾指定的字符生成的新字符串
-        line = line.strip()
-        # 以 '\t' 切割字符串
-        listFromLine = line.split('\t')
-        # 每列的属性数据，即 features
-        returnMat[index] = listFromLine[0 : 3]
-        # 每列的类别数据，就是 label 标签数据
-        classLabelVector.append(int(listFromLine[-1]))
-        index += 1
+    with open(filename, 'r') as fr:
+        for line in fr.readlines():
+            # 去掉头尾空格，以\t为分隔符切割每一行
+            listFromLine = line.strip().split('\t')
+            # 每列的属性数据，即 features
+            returnMat[index] = listFromLine[:-1]
+            # 每列的类别数据，就是 label 标签数据
+            classLabelVector.append(int(listFromLine[-1]))
+            index += 1
     # 返回数据矩阵returnMat和对应的类别classLabelVector
     return returnMat, classLabelVector
-
 
 def autoNorm(dataSet):
     """
@@ -125,28 +119,23 @@ def autoNorm(dataSet):
         minVals -- 最小值
 
     归一化公式：
-        Y = (X-Xmin)/(Xmax-Xmin)
+        $Y = \frac{X-Xmin}{Xmax-Xmin}$
         其中的 min 和 max 分别是数据集中的最小特征值和最大特征值。该函数可以自动将数字特征值转化为0到1的区间。
-    """
-    # 计算每种属性的最大值、最小值、范围
-    minVals = dataSet.min(0)
-    maxVals = dataSet.max(0)
-    # 极差
-    ranges = maxVals - minVals
-    # -------第一种实现方式---start-------------------------
+
     normDataSet = np.zeros(np.shape(dataSet))
     m = dataSet.shape[0]
     # 生成与最小值之差组成的矩阵
     normDataSet = dataSet - np.tile(minVals, (m, 1))
     # 将最小值之差除以范围组成矩阵
     normDataSet = normDataSet / np.tile(ranges, (m, 1))  # element wise divide
-    # -------第一种实现方式---end---------------------------------------------
-    
-    # # -------第二种实现方式---start---------------------------------------
-    # norm_dataset = (dataset - minvalue) / ranges
-    # # -------第二种实现方式---end---------------------------------------------
+    """
+    # 计算每种属性的最大值、最小值、范围
+    minVals = dataSet.min(0)
+    maxVals = dataSet.max(0)
+    # 极差
+    ranges = maxVals - minVals
+    normDataSet = (dataSet - minVals) / ranges
     return normDataSet, ranges, minVals
-
 
 def datingClassTest():
     """
@@ -160,13 +149,13 @@ def datingClassTest():
     # 设置测试数据的的一个比例（训练数据集比例=1-hoRatio）
     hoRatio = 0.1  # 测试范围,一部分测试一部分作为样本
     # 从文件中加载数据
-    datingDataMat, datingLabels = file2matrix("../../../input/2.KNN/datingTestSet2.txt")  # load data setfrom file
+    datingDataMat, datingLabels = file2matrix("input/2.KNN/datingTestSet2.txt")
     # 归一化数据
     normMat, ranges, minVals = autoNorm(datingDataMat)
     # m 表示数据的行数，即矩阵的第一维
     m = normMat.shape[0]
     # 设置测试的样本数量， numTestVecs:m表示训练样本的数量
-    numTestVecs = int(m * hoRatio)
+    numTestVecs = int(m*hoRatio)
     print('numTestVecs=', numTestVecs)
     errorCount = 0
     for i in range(numTestVecs):
@@ -239,7 +228,7 @@ def handwritingClassTest():
 
 
 if __name__ == '__main__':
-    Test()
-    # datingClassTest()
+    # test()
+    datingClassTest()
     # print(os.getcwd())
     # handwritingClassTest()
