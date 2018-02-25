@@ -36,7 +36,7 @@ def createDataSet():
     return group, labels
 
 def classify0(inX, dataSet, labels, k):
-    """
+    r"""
     Desc:
         kNN 的分类函数
     Args:
@@ -135,7 +135,7 @@ def autoNorm(dataSet):
     # 极差
     ranges = maxVals - minVals
     normDataSet = (dataSet - minVals) / ranges
-    return normDataSet, ranges, minVals
+    return normDataSet
 
 def datingClassTest():
     """
@@ -151,7 +151,7 @@ def datingClassTest():
     # 从文件中加载数据
     datingDataMat, datingLabels = file2matrix("input/2.KNN/datingTestSet2.txt")
     # 归一化数据
-    normMat, ranges, minVals = autoNorm(datingDataMat)
+    normMat = autoNorm(datingDataMat)
     # m 表示数据的行数，即矩阵的第一维
     m = normMat.shape[0]
     # 设置测试的样本数量， numTestVecs:m表示训练样本的数量
