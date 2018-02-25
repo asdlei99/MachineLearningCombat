@@ -12,16 +12,47 @@ reps: (a, b)
 
 a复制的行数，b重复的次数
 
+### np.meshgrid(x, y)
+
+根据x, y生成网格。
+
+我的理解是:x、y分别是一维数组，y的长度变成x的列长度，构成二维数组。x的长度变为y的横长度，构成二维数组
+
+```python
+>>> a = np.array([1, 2])
+>>> b = np.array([3, 4, 5])
+>>> aa, bb = meshgrid(a, b)
+# aa
+array([[1, 2],
+       [1, 2],
+       [1, 2]])
+# bb
+array([[3, 3],
+       [4, 4],
+       [5, 5]])
+
+>>> bb, aa = meshgrid(b, a)
+# aa
+array([[1, 1, 1],
+       [2, 2, 2]])
+# bb
+array([[3, 4, 5],
+       [3, 4, 5]])
+```
+
 ### dict的get方法
 
 dict.get(key, value)
 
 如果key在字典中，则返回对应的value; 若不在则返回value
 
-
 ###　Counter.most_common(n)
 
 返回出现前n个次数最多的
+
+### plt.pcolormesh()
+
+绘制二维数组图，与`pcolor`类似，但是比`pcolor`快
 
 ### classify0(inX, dataSet, labels, k)
 
