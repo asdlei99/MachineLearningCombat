@@ -16,6 +16,9 @@ a复制的行数，b重复的次数
 dict的get方法
 dict.get(key, value)
 如果key在字典中，则返回对应的value; 若不在则返回value
+
+Counter.most_common(n)
+返回出现前n个次数最多的
 """
 
 def createDataSet():
@@ -44,11 +47,8 @@ def classify0(inX, dataSet, labels, k):
         k -- 选择最近邻的数目
     Returns:
         sortedClassCount[0][0] -- 输入向量的预测分类 labels
-    """
 
-    # -----------实现 classify0() 方法的第一种方式----------------------------------------------------------------------------------------------------------------------------
     # 1. 距离计算, 公式$\sqrt((A1-A2)^2+(B1-B2)^2+(C1-C2)^2+...)$
-    
     # inX生成和训练样本对应的矩阵，并与训练样本求差
     dataSetSize = dataSet.shape[0]
     diffMat = np.tile(inX, (dataSetSize, 1)) - dataSet
@@ -60,7 +60,6 @@ def classify0(inX, dataSet, labels, k):
     distances = sqDistances ** 0.5
     # 从小到大进行排序，返回索引位置
     sortedDistIndicies = distances.argsort()
-
     # 2. 选择距离最小的k个点
     classCount = {}
     for i in range(k):
@@ -70,53 +69,19 @@ def classify0(inX, dataSet, labels, k):
     # 3. 排序并返回出现最多的那个类型
     sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
     return sortedClassCount[0][0]
-    
-    # ------------------------------------------------------------------------------------------------------------------------------------------
-    # 实现 classify0() 方法的第二种方式
-
-    # """
-    # 1. 计算距离
-    
-    # 欧氏距离： 点到点之间的距离
-    #    第一行： 同一个点 到 dataSet的第一个点的距离。
-    #    第二行： 同一个点 到 dataSet的第二个点的距离。
-    #    ...
-    #    第N行： 同一个点 到 dataSet的第N个点的距离。
-
-    # [[1,2,3],[1,2,3]]-[[1,2,3],[1,2,0]]
-    # (A1-A2)^2+(B1-B2)^2+(c1-c2)^2
-    
-    # inx - dataset 使用了numpy broadcasting，见 https://docs.scipy.org/doc/numpy-1.13.0/user/basics.broadcasting.html
-    # np.sum() 函数的使用见 https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.sum.html
-    # """
-	#   dist = np.sum((inx - dataset)**2, axis=1)**0.5
-    
-    # """
-    # 2. k个最近的标签
-    
-    # 对距离排序使用numpy中的argsort函数， 见 https://docs.scipy.org/doc/numpy-1.13.0/reference/generated/numpy.sort.html#numpy.sort
-    # 函数返回的是索引，因此取前k个索引使用[0 : k]
-    # 将这k个标签存在列表k_labels中
-    # """
-    # k_labels = [labels[index] for index in dist.argsort()[0 : k]]
-	# """
-    # 3. 出现次数最多的标签即为最终类别
-    
-    # 使用collections.Counter可以统计各个标签的出现次数，most_common返回出现次数最多的标签tuple，例如[('lable1', 2)]，因此[0][0]可以取出标签值
-	# """
-    # label = Counter(k_labels).most_common(1)[0][0]
-    # return label
-
-    # ------------------------------------------------------------------------------------------------------------------------------------------
+    """
+    # 步骤： 计算距离，选取距离最小的k个点，返回出现最多的类型
+    dist = np.sum((inX - dataSet)**2, axis=1)**0.5
+    k_labels = [labels[index] for index in dist.argsort()[:k]]
+    label = Counter(k_labels).most_common(1)[0][0]
+    return label
 
 
 def test1():
-    """
-    第一个例子演示
-    """
+    # 第一个例子展示
     group, labels = createDataSet()
-    print(str(group))
-    print(str(labels))
+    print(group)
+    print(labels)
     print(classify0([0.1, 0.1], group, labels, 3))
 
 
@@ -276,7 +241,7 @@ def handwritingClassTest():
 
 
 if __name__ == '__main__':
-    # test1()
+    test1()
     # datingClassTest()
-    print(os.getcwd())
-    handwritingClassTest()
+    # print(os.getcwd())
+    # handwritingClassTest()
