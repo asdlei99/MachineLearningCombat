@@ -25,7 +25,9 @@ dict.get(key, value)
 
 ### classify0(inX, dataSet, labels, k)
 
-公式$\sqrt{(A1-A2)^2+(B1-B2)^2+(C1-C2)^2+...}$
+公式:
+
+$$\sqrt{(A1-A2)^2+(B1-B2)^2+(C1-C2)^2+...}$$
 
 ```python
 # 1. 距离计算
