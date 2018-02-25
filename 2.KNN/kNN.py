@@ -21,71 +21,69 @@ Counter.most_common(n)
 返回出现前n个次数最多的
 """
 
-def createDataSet():
-    """
-    Desc:
-        创建数据集和标签
-    Args:
-        None
-    Returns:
-        group -- 训练数据集的 features
-        labels -- 训练数据集的 labels
-    """
-    group = np.array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
-    labels = ['A', 'A', 'B', 'B']
-    return group, labels
+def Test():
+    def createDataSet():
+        """
+        Desc:
+            创建数据集和标签
+        Args:
+            None
+        Returns:
+            group -- 训练数据集的 features
+            labels -- 训练数据集的 labels
+        """
+        group = np.array([[1.0, 1.1], [1.0, 1.0], [0, 0], [0, 0.1]])
+        labels = ['A', 'A', 'B', 'B']
+        return group, labels
 
 
-def classify0(inX, dataSet, labels, k):
-    """
-    Desc:
-        kNN 的分类函数
-    Args:
-        inX -- 用于分类的输入向量/测试数据
-        dataSet -- 训练数据集的 features
-        labels -- 训练数据集的 labels
-        k -- 选择最近邻的数目
-    Returns:
-        sortedClassCount[0][0] -- 输入向量的预测分类 labels
+    def classify0(inX, dataSet, labels, k):
+        """
+        Desc:
+            kNN 的分类函数
+        Args:
+            inX -- 用于分类的输入向量/测试数据
+            dataSet -- 训练数据集的 features
+            labels -- 训练数据集的 labels
+            k -- 选择最近邻的数目
+        Returns:
+            sortedClassCount[0][0] -- 输入向量的预测分类 labels
 
-    # 1. 距离计算, 公式$\sqrt((A1-A2)^2+(B1-B2)^2+(C1-C2)^2+...)$
-    # inX生成和训练样本对应的矩阵，并与训练样本求差
-    dataSetSize = dataSet.shape[0]
-    diffMat = np.tile(inX, (dataSetSize, 1)) - dataSet
-    # 取平方
-    sqDiffMat = diffMat ** 2
-    #　求和
-    sqDistances = sqDiffMat.sum(axis=1)
-    # 开方
-    distances = sqDistances ** 0.5
-    # 从小到大进行排序，返回索引位置
-    sortedDistIndicies = distances.argsort()
-    # 2. 选择距离最小的k个点
-    classCount = {}
-    for i in range(k):
-        # 找到该样本的类型, 并在字典中将该类型加一
-        voteIlabel = labels[sortedDistIndicies[i]]
-        classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
-    # 3. 排序并返回出现最多的那个类型
-    sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
-    return sortedClassCount[0][0]
-    """
-    # 步骤： 计算距离，选取距离最小的k个点，返回出现最多的类型
-    dist = np.sum((inX - dataSet)**2, axis=1)**0.5
-    k_labels = [labels[index] for index in dist.argsort()[:k]]
-    label = Counter(k_labels).most_common(1)[0][0]
-    return label
+        # 1. 距离计算, 公式$\sqrt((A1-A2)^2+(B1-B2)^2+(C1-C2)^2+...)$
+        # inX生成和训练样本对应的矩阵，并与训练样本求差
+        dataSetSize = dataSet.shape[0]
+        diffMat = np.tile(inX, (dataSetSize, 1)) - dataSet
+        # 取平方
+        sqDiffMat = diffMat ** 2
+        #　求和
+        sqDistances = sqDiffMat.sum(axis=1)
+        # 开方
+        distances = sqDistances ** 0.5
+        # 从小到大进行排序，返回索引位置
+        sortedDistIndicies = distances.argsort()
+        # 2. 选择距离最小的k个点
+        classCount = {}
+        for i in range(k):
+            # 找到该样本的类型, 并在字典中将该类型加一
+            voteIlabel = labels[sortedDistIndicies[i]]
+            classCount[voteIlabel] = classCount.get(voteIlabel, 0) + 1
+        # 3. 排序并返回出现最多的那个类型
+        sortedClassCount = sorted(classCount.items(), key=operator.itemgetter(1), reverse=True)
+        return sortedClassCount[0][0]
+        """
+        # 步骤： 计算距离，选取距离最小的k个点，返回出现最多的类型
+        dist = np.sum((inX - dataSet)**2, axis=1)**0.5
+        k_labels = [labels[index] for index in dist.argsort()[:k]]
+        label = Counter(k_labels).most_common(1)[0][0]
+        return label
 
-
-def test1():
-    # 第一个例子展示
     group, labels = createDataSet()
     print(group)
     print(labels)
     print(classify0([0.1, 0.1], group, labels, 3))
 
+    
 
-# ----------------------------------------------------------------------------------------
 def file2matrix(filename):
     """
     导入训练数据
@@ -241,7 +239,7 @@ def handwritingClassTest():
 
 
 if __name__ == '__main__':
-    test1()
+    Test()
     # datingClassTest()
     # print(os.getcwd())
     # handwritingClassTest()
