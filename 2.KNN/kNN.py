@@ -4,7 +4,7 @@
 import operator
 import os
 from collections import Counter
-
+import sys
 import numpy as np
 
 """
@@ -20,6 +20,7 @@ dict.get(key, value)
 Counter.most_common(n)
 返回出现前n个次数最多的
 """
+path = sys.path[0]
 
 def createDataSet():
     """
@@ -149,7 +150,7 @@ def datingClassTest():
     # 设置测试数据的的一个比例（训练数据集比例=1-hoRatio）
     hoRatio = 0.1  # 测试范围,一部分测试一部分作为样本
     # 从文件中加载数据
-    datingDataMat, datingLabels = file2matrix("input/2.KNN/datingTestSet2.txt")
+    datingDataMat, datingLabels = file2matrix(path + "/Data/datingTestSet2.txt")
     # 归一化数据
     normMat = autoNorm(datingDataMat)
     # m 表示数据的行数，即矩阵的第一维
@@ -199,7 +200,7 @@ def handwritingClassTest():
     """
     # 1. 导入数据
     hwLabels = []
-    trainingFileList = os.listdir("input/2.KNN/trainingDigits") # load the training set
+    trainingFileList = os.listdir(path + "/Data/trainingDigits") # load the training set
     m = len(trainingFileList)
     trainingMat = np.zeros((m, 1024))
     # hwLabels存储0～9对应的index位置， trainingMat存放的每个位置对应的图片向量
@@ -209,16 +210,16 @@ def handwritingClassTest():
         classNumStr = int(fileNameStr.split('_')[0])
         hwLabels.append(classNumStr)
         # 将 32*32的矩阵->1*1024的矩阵
-        trainingMat[i] = img2vector('input/2.KNN/trainingDigits/%s' % fileNameStr)
+        trainingMat[i] = img2vector(path + '/Data/trainingDigits/%s' % fileNameStr)
 
     # 2. 导入测试数据
-    testFileList = os.listdir('input/2.KNN/testDigits')  # iterate through the test set
+    testFileList = os.listdir(path + '/Data/testDigits')  # iterate through the test set
     errorCount = 0
     mTest = len(testFileList)
     for i in range(mTest):
         fileNameStr = testFileList[i]
         classNumStr = int(fileNameStr.split('_')[0])
-        vectorUnderTest = img2vector('input/2.KNN/testDigits/%s' % fileNameStr)
+        vectorUnderTest = img2vector(path + '/Data/testDigits/%s' % fileNameStr)
         classifierResult = classify0(vectorUnderTest, trainingMat, hwLabels, 3)
         print("the classifier came back with: %d, the real answer is: %d" % (classifierResult, classNumStr))
         errorCount += classifierResult != classNumStr
