@@ -1,22 +1,24 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-# 原始链接： http://blog.csdn.net/lsldd/article/details/41223147
-# 《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
+
+import sys
 import numpy as np
 from sklearn import tree
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import classification_report
 from sklearn.cross_validation import train_test_split
 
+path = sys.path[0]
+
 
 def createDataSet():
     ''' 数据读入 '''
     data = []
     labels = []
-    with open("../../../input/3.DecisionTree/data.txt") as ifile:
+    with open(path + "/Data/data.txt") as ifile:
         for line in ifile:
-            # 特征： 身高 体重   label： 胖瘦
-            tokens = line.strip().split(' ')
+            # 特征： 身高 体重   label： 胖瘦(fat)
+            tokens = line.strip().split(" ")
             data.append([float(tk) for tk in tokens[:-1]])
             labels.append(tokens[-1])
     # 特征数据
@@ -25,8 +27,7 @@ def createDataSet():
     labels = np.array(labels)
     # 预估结果的标签数据
     y = np.zeros(labels.shape)
-
-    ''' 标签转换为0/1 '''
+    # 标签转换为0/1
     y[labels == 'fat'] = 1
     print(data, '-------', x, '-------', labels, '-------', y)
     return x, y
@@ -40,10 +41,9 @@ def predict_train(x_train, y_train):
     clf = tree.DecisionTreeClassifier(criterion='entropy')
     # print(clf)
     clf.fit(x_train, y_train)
-    ''' 系数反映每个特征的影响力。越大表示该特征在分类中起到的作用越大 '''
+    # 系数反映每个特征的影响力。越大表示该特征在分类中起到的作用越大
     print('feature_importances_: %s' % clf.feature_importances_)
-
-    '''测试结果的打印'''
+    # 测试结果的打印
     y_pre = clf.predict(x_train)
     # print(x_train)
     print(y_pre)
@@ -52,7 +52,7 @@ def predict_train(x_train, y_train):
     return y_pre, clf
 
 
-def show_precision_recall(x, y, clf,  y_train, y_pre):
+def show_precision_recall(x, y, clf, y_train, y_pre):
     '''
     准确率与召回率
     参考链接： http://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html#sklearn.metrics.precision_recall_curve
@@ -60,7 +60,6 @@ def show_precision_recall(x, y, clf,  y_train, y_pre):
     precision, recall, thresholds = precision_recall_curve(y_train, y_pre)
     # 计算全量的预估结果
     answer = clf.predict_proba(x)[:, 1]
-
     '''
     展现 准确率与召回率
         precision 准确率
@@ -74,6 +73,9 @@ def show_precision_recall(x, y, clf,  y_train, y_pre):
     print(classification_report(y, answer, target_names=target_names))
     print(answer)
     print(y)
+    print("precision(准确率): ", precision)
+    print("recall(召回率): ", recall)
+    print("thresholds(阈值): ", thresholds)
 
 
 def show_pdf(clf):
@@ -94,7 +96,7 @@ def show_pdf(clf):
     dot_data = StringIO()
     tree.export_graphviz(clf, out_file=dot_data)
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    graph.write_pdf("../../../output/3.DecisionTree/tree.pdf")
+    graph.write_pdf(path + "/Data/tree.pdf")
 
     # from IPython.display import Image
     # Image(graph.create_png())
@@ -102,8 +104,7 @@ def show_pdf(clf):
 
 if __name__ == '__main__':
     x, y = createDataSet()
-
-    ''' 拆分训练数据与测试数据， 80%做训练 20%做测试 '''
+    # 拆分训练数据与测试数据， 80%做训练 20%做测试
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
     print('拆分数据：', x_train, x_test, y_train, y_test)
 
