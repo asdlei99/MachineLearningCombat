@@ -91,6 +91,7 @@ def chooseBestFeatureToSplit(dataSet):
                        for feature in feature_count.items())
         # 更新值
         info_gain = base_entropy - new_entropy
+        # 输出对应特征的更新值
         print('No. {0} feature info gain is {1:.3f}'.format(i, info_gain))
         if info_gain > best_info_gain:
             best_info_gain = info_gain
@@ -166,10 +167,10 @@ def classify(inputTree, featLabels, testVec):
     Returns:
         classLabel -- 分类的结果值，需要映射label才能知道名称
     """
-    # 获取tree的根节点对于的key值
+    # 获取tree的根节点对应的key值
     firstStr = list(inputTree.keys())[0]
     # 通过key得到根节点对应的value
-    secondDict = inputTree[firstStr]
+    secondDict = inputTree.get(firstStr)
     # 判断根节点名称获取根节点在label中的先后顺序，这样就知道输入的testVec怎么开始对照树来做分类
     featIndex = featLabels.index(firstStr)
     # 测试数据，找到根节点对应的label位置，也就知道从输入的数据的第几位来开始分类
@@ -185,30 +186,13 @@ def classify(inputTree, featLabels, testVec):
 
 
 def storeTree(inputTree, filename):
-    """
-    Desc:
-        将之前训练好的决策树模型存储起来，使用 pickle 模块
-    Args:
-        inputTree -- 以前训练好的决策树模型
-        filename -- 要存储的名称
-    Returns:
-        None
-    """
-
+    # 保存决策树
     with open(filename, 'w') as fw:
         pickle.dump(inputTree, fw)
 
 
 def grabTree(filename):
-    """
-    Desc:
-        将之前存储的决策树模型使用 pickle 模块 还原出来
-    Args:
-        filename -- 之前存储决策树模型的文件名
-    Returns:
-        pickle.load(fr) -- 将之前存储的决策树模型还原出来
-    """
-
+    # 加载之前保存的决策树
     with open(filename, 'r') as fr:
         fr = open(filename)
         return pickle.load(fr)
@@ -223,7 +207,7 @@ def fishTest():
     Returns:
         None
     """
-    # 1.创建数据和结果标签
+    # 获取数据
     myDat, labels = createDataSet()
 
     import copy
