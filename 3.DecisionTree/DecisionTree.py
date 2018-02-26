@@ -1,12 +1,13 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
+import pickle
 from math import log
 import decisionTreePlot as dtPlot
 from collections import Counter
 import sys
 
 path = sys.path[0]
+
 
 def createDataSet():
     """
@@ -60,11 +61,12 @@ def splitDataSet(dataSet, index, value):
     """
 
     retDataSet = [
-         data[:index] + data[index + 1:] for data in dataSet for i, v in enumerate(data)
-         if i == index and v == value
-     ]
+        data[:index] + data[index + 1:] for data in dataSet
+        for i, v in enumerate(data) if i == index and v == value
+    ]
 
     return retDataSet
+
 
 def chooseBestFeatureToSplit(dataSet):
     """
@@ -79,7 +81,7 @@ def chooseBestFeatureToSplit(dataSet):
     # 计算初始香农熵
     base_entropy = calcShannonEnt(dataSet)
     # 最优的信息增益值和最优的Featurn编号
-    best_info_gain,  best_feature = 0, -1
+    best_info_gain, best_feature = 0, -1
     # 遍历每一个特征
     for i in range(len(dataSet[0]) - 1):
         # 对当前特征进行统计
@@ -108,6 +110,7 @@ def majorityCnt(classList):
     major_label = Counter(classList).most_common(1)[0]
     return major_label
 
+
 def createTree(dataSet, labels):
     """
     Desc:
@@ -118,7 +121,7 @@ def createTree(dataSet, labels):
     Returns:
         myTree -- 创建完成的决策树
 
-    调用生成决策树递归
+    用递归的方法生成决策树, 决策树用字典表示
     """
     # 收集当前所有类别
     classList = [example[-1] for example in dataSet]
@@ -148,7 +151,7 @@ def createTree(dataSet, labels):
         # 遍历当前选择特征包含的所有属性值，在每个数据集划分上递归调用函数createTree()
         myTree[bestFeatLabel][value] = createTree(
             splitDataSet(dataSet, bestFeat, value), subLabels)
-        # print('myTree', value, myTree)
+
     return myTree
 
 
@@ -191,7 +194,6 @@ def storeTree(inputTree, filename):
     Returns:
         None
     """
-    import pickle
 
     with open(filename, 'w') as fw:
         pickle.dump(inputTree, fw)
@@ -206,7 +208,7 @@ def grabTree(filename):
     Returns:
         pickle.load(fr) -- 将之前存储的决策树模型还原出来
     """
-    import pickle
+
     with open(filename, 'r') as fr:
         fr = open(filename)
         return pickle.load(fr)
@@ -223,17 +225,6 @@ def fishTest():
     """
     # 1.创建数据和结果标签
     myDat, labels = createDataSet()
-    # print(myDat, labels)
-
-    # 计算label分类标签的香农熵
-    # calcShannonEnt(myDat)
-
-    # # 求第0列 为 1/0的列的数据集【排除第0列】
-    # print('1---', splitDataSet(myDat, 0, 1))
-    # print('0---', splitDataSet(myDat, 0, 0))
-
-    # # 计算最好的信息增益的列
-    # print(chooseBestFeatureToSplit(myDat))
 
     import copy
     myTree = createTree(myDat, copy.deepcopy(labels))
@@ -255,17 +246,15 @@ def ContactLensesTest():
         none
     """
 
-    # 加载隐形眼镜相关的 文本文件 数据
-    fr = open(path + 'Data/lenses.txt')
-    # 解析数据，获得 features 数据
-    lenses = [inst.strip().split('\t') for inst in fr.readlines()]
-    # 得到数据的对应的 Labels
-    lensesLabels = ['age', 'prescript', 'astigmatic', 'tearRate']
-    # 使用上面的创建决策树的代码，构造预测隐形眼镜的决策树
-    lensesTree = createTree(lenses, lensesLabels)
-    print(lensesTree)
-    # 画图可视化展现
-    dtPlot.createPlot(lensesTree)
+    with open(path + 'Data/lenses.txt', 'r') as fr:
+        lenses = [inst.strip().split('\t') for inst in fr.readlines()]
+        # 得到数据的对应的 Labels
+        lensesLabels = ['age', 'prescript', 'astigmatic', 'tearRate']
+        # 使用上面的创建决策树的代码，构造预测隐形眼镜的决策树
+        lensesTree = createTree(lenses, lensesLabels)
+        print(lensesTree)
+        # 画图可视化展现
+        dtPlot.createPlot(lensesTree)
 
 
 if __name__ == "__main__":
