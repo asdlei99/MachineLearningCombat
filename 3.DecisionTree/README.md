@@ -1,5 +1,7 @@
 ## DecisionTree.py
 
+决策树可视化demo
+
 ### 计算香农熵
 
 公式：
@@ -79,3 +81,6 @@ for i in range(numFeatures):
 return bestFeature
 ```
 
+## decisionTreePlot.py
+
+绘制决策数函数
