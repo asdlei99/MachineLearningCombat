@@ -55,17 +55,15 @@ def show_precision_recall(x, y, clf, y_train, y_pre):
     '''
     准确率与召回率
     参考链接： http://scikit-learn.org/stable/modules/generated/sklearn.metrics.precision_recall_curve.html#sklearn.metrics.precision_recall_curve
+    precision 准确率
+    recall 召回率
+    f1-score  准确率和召回率的一个综合得分
+    support 参与比较的数量
+    参考链接：http://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html#sklearn.metrics.classification_report
     '''
     precision, recall, thresholds = precision_recall_curve(y_train, y_pre)
     # 计算全量的预估结果
     answer = clf.predict_proba(x)[:, 1]
-    '''
-        precision 准确率
-        recall 召回率
-        f1-score  准确率和召回率的一个综合得分
-        support 参与比较的数量
-    参考链接：http://scikit-learn.org/stable/modules/generated/sklearn.metrics.classification_report.html#sklearn.metrics.classification_report
-    '''
     # target_names 以 y的label分类为准
     target_names = ['thin', 'fat']
     print(classification_report(y, answer, target_names=target_names))
@@ -87,7 +85,6 @@ def show_pdf(clf):
     tree.export_graphviz(clf, out_file=dot_data)
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
     graph.write_pdf(path + "Data/tree.pdf")
-
 
 
 if __name__ == '__main__':
