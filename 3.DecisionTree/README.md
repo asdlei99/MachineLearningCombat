@@ -112,3 +112,40 @@ from sklearn.metrics import classification_report
 # 分割数据
 from sklearn.cross_validation import train_test_split
 ```
+
+
+## sklearn_dts_regressor_demo.py
+
+### np.ravel()
+
+返回一个连续的一维数组。
+
+参数`order`介绍: 
+
+表示使用这个索引顺序读取数组元素。主要有四个参数可供选择`{'C','F', 'A', 'K'}`, 参数可选，默认为`C`
+
+- 'C': 按行
+- 'F': 按列
+- 'A': 原顺序
+- 'K': 内存中的顺序。
+
+与`np.flatten`不同的是，`np.ravel`是深拷贝，`np.flatten`是浅拷贝
+
+### np.newaxis
+
+插入一个新的维度。用法如下：
+
+```python
+# a = np.array([1, 2, 3, 4, 5])
+array([1, 2, 3, 4, 5])
+
+# b = a[:, np.newaxis]
+array([[1, 2, 3, 4, 5]])
+
+# c = a[np.newaxis, :]
+array([[1],
+       [2],
+       [3],
+       [4],
+       [5]])
+```
