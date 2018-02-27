@@ -1,24 +1,15 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-"""
-Created on 2017-06-29
-Updated on 2017-06-29
-DecisionTree：决策树
-@author: 小瑶
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-"""
-
-print(__doc__)
-
 # 引入必要的模型和库
 import numpy as np
+from numpy.random import RandomState 
 from sklearn.tree import DecisionTreeRegressor
 import matplotlib.pyplot as plt
 
 # 创建一个随机的数据集
 # 参考 https://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.random.mtrand.RandomState.html
-rng = np.random.RandomState(1)
+rng = RandomState(1)
 # print('lalalalala===', rng)
 # rand() 是给定形状的随机值，rng.rand(80, 1)即矩阵的形状是 80行，1列
 # sort() 
