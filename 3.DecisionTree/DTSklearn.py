@@ -15,7 +15,7 @@ def createDataSet():
     ''' 数据读入 '''
     data = []
     labels = []
-    with open(path + "/Data/data.txt") as ifile:
+    with open(path + "Data/data.txt") as ifile:
         for line in ifile:
             # 特征： 身高 体重   label： 胖瘦(fat)
             tokens = line.strip().split(" ")
@@ -39,15 +39,14 @@ def predict_train(x_train, y_train):
     参考链接： http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html#sklearn.tree.DecisionTreeClassifier
     '''
     clf = tree.DecisionTreeClassifier(criterion='entropy')
-    # print(clf)
+
     clf.fit(x_train, y_train)
     # 系数反映每个特征的影响力。越大表示该特征在分类中起到的作用越大
     print('feature_importances_: %s' % clf.feature_importances_)
     # 测试结果的打印
     y_pre = clf.predict(x_train)
-    # print(x_train)
-    print(y_pre)
-    print(y_train)
+    print("y_pre:", y_pre)
+    print("y_train", y_train)
     print(np.mean(y_pre == y_train))
     return y_pre, clf
 
@@ -61,7 +60,6 @@ def show_precision_recall(x, y, clf, y_train, y_pre):
     # 计算全量的预估结果
     answer = clf.predict_proba(x)[:, 1]
     '''
-    展现 准确率与召回率
         precision 准确率
         recall 召回率
         f1-score  准确率和召回率的一个综合得分
@@ -82,24 +80,14 @@ def show_pdf(clf):
     '''
     可视化输出
     把决策树结构写入文件: http://sklearn.lzjqsdd.com/modules/tree.html
-
-    Mac报错：pydotplus.graphviz.InvocationException: GraphViz's executables not found
-    解决方案：sudo brew install graphviz
-    参考写入： http://www.jianshu.com/p/59b510bafb4d
     '''
-    # with open("testResult/tree.dot", 'w') as f:
-    #     from sklearn.externals.six import StringIO
-    #     tree.export_graphviz(clf, out_file=f)
-
     import pydotplus
     from sklearn.externals.six import StringIO
     dot_data = StringIO()
     tree.export_graphviz(clf, out_file=dot_data)
     graph = pydotplus.graph_from_dot_data(dot_data.getvalue())
-    graph.write_pdf(path + "/Data/tree.pdf")
+    graph.write_pdf(path + "Data/tree.pdf")
 
-    # from IPython.display import Image
-    # Image(graph.create_png())
 
 
 if __name__ == '__main__':
