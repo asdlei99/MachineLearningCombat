@@ -84,3 +84,31 @@ return bestFeature
 ## decisionTreePlot.py
 
 绘制决策数函数
+
+## DTSklearn.py
+
+使用前需要预先安装两个模块
+
+```bash
+sudo conda install pydotplus
+sudo apt install graphviz
+```
+
+```python
+# 生成决策树模型
+from sklearn import tree
+# 评估模型准确率与召回率
+from sklearn.metrics import precision_recall_curve
+# 评价模型
+from sklearn.metrics import classification_report
+"""
+                 precision    recall  f1-score   support
+
+       thin       1.00      0.83      0.91         6
+        fat       0.80      1.00      0.89         4
+
+    avg / total       0.92      0.90      0.90        10
+"""
+# 分割数据
+from sklearn.cross_validation import train_test_split
+```
