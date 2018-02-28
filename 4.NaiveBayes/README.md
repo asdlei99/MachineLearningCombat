@@ -59,3 +59,40 @@ def _train_naive_bayes(train_mat, train_category):
     p0vec = p0num / p0num_all
     return p0vec, p1vec, pos_abusive
 ```
+
+### re.split
+
+使用正则表达式来切分字符串
+
+```python
+# 原始切分，匹配到了标点符号进行切分
+>>> re.split('\W+', 'Words, words, words.')
+['Words', 'words', 'words', '']
+# 如果正则含有()则输出包括标点符号
+>>> re.split('(\W+)', 'Words, words, words.')
+['Words', ', ', 'words', ', ', 'words', '.', '']
+#　只切割一次
+>>> re.split('\W+', 'Words, words, words.', 1)
+['Words', 'words, words.']
+# 忽略大小写的切割
+>>> re.split('[a-f]+', '0a3B9', flags=re.IGNORECASE)
+['0', '3', '9']
+
+# 如果匹配到了开头，也进行输出
+>>> re.split('(\W+)', '...words, words...')
+['', '...', 'words', ', ', 'words', '...', '']
+
+# 未匹配到，不切割
+>>> re.split('x*', 'foo')
+['foo']
+>>> re.split("(?m)^$", "foo\n\nbar\n")
+['foo\n\nbar\n']
+```
+
+### 生成不重复的随机数列表
+
+
+```python
+# 生成范围在0到50的10个不重复的随机数
+random_lst = random.sample(range(50), 10)
+```
