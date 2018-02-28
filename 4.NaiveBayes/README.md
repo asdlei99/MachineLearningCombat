@@ -91,8 +91,21 @@ def _train_naive_bayes(train_mat, train_category):
 
 ### 生成不重复的随机数列表
 
-
 ```python
 # 生成范围在0到50的10个不重复的随机数
 random_lst = random.sample(range(50), 10)
+```
+
+### feedparser
+
+解析RSS网页
+
+### 使用`np.log()`报错
+
+原因是，被除数里面有0。`RuntimeWarning: divide by zero encountered in log p0`
+
+解决警告的方法就是，在代码开头加上下面这样一行，忽略除法警告
+
+```python
+np.seterr(divide='ignore', invalid='ignore')
 ```
