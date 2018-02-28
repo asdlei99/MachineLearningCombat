@@ -3,6 +3,10 @@
 # pylint: disable=E1101
 import numpy as np
 from numpy.random import uniform
+import sys
+import re
+import random
+path = sys.path[0]
 
 # ------项目案例1: 屏蔽社区留言板的侮辱性言论------
 
@@ -48,8 +52,7 @@ def set_of_words2vec(vocab_list, input_set):
     result = [0] * len(vocab_list)
     # 遍历文档中的所有单词，如果出现了词汇表中的单词，则将输出的文档向量中的对应值设为1
     for word in set(input_set):
-        if word in vocab_list:
-            result[vocab_list.index(word)] = 1
+        result[vocab_list.index(word)] = 1 if word in vocab_list else 0
     return result
 
 
@@ -115,17 +118,6 @@ def classify_naive_bayes(vec2classify, p0vec, p1vec, p_class1):
         return 0
 
 
-def bag_words2vec(vocab_list, input_set):
-    # 注意和原来的做对比
-    result = [0] * len(vocab_list)
-    for word in input_set:
-        if word in vocab_list:
-            result[vocab_list.index(word)] += 1
-        else:
-            print('the word: {} is not in my vocabulary'.format(word))
-    return result
-
-
 def testing_naive_bayes():
     """
     测试朴素贝叶斯算法
@@ -159,15 +151,23 @@ def testing_naive_bayes():
 # --------项目案例2: 使用朴素贝叶斯过滤垃圾邮件--------------
 
 
+def bag_words2vec(vocab_list, input_set):
+    # 注意和原来的做对比
+    result = [0] * len(vocab_list)
+    for word in input_set:
+        if word in vocab_list:
+            result[vocab_list.index(word)] += 1
+        else:
+            print('the word: {} is not in my vocabulary'.format(word))
+    return result
+
+
 def text_parse(big_str):
     """
     这里就是做词划分
     :param big_str: 某个被拼接后的字符串
     :return: 全部是小写的word列表，去掉少于 2 个字符的字符串
     """
-    import re
-    # 其实这里比较推荐用　\W+ 代替 \W*，
-    # 因为 \W*会match empty patten，在py3.5+之后就会出现什么问题，推荐自己修改尝试一下，可能就会re.split理解更深了
     token_list = re.split(r'\W+', big_str)
     if len(token_list) == 0:
         print(token_list)
@@ -184,54 +184,44 @@ def spam_test():
     full_text = []
     for i in range(1, 26):
         # 添加垃圾邮件信息
-        # 这里需要做一个说明，为什么我会使用try except 来做
-        # 因为我们其中有几个文件的编码格式是 windows 1252　（spam: 17.txt, ham: 6.txt...)
-        # 这里其实还可以 :
-        # import os
-        # 然后检查 os.system(' file {}.txt'.format(i))，看一下返回的是什么
-        # 如果正常能读返回的都是：　ASCII text
-        # 对于except需要处理的都是返回： Non-ISO extended-ASCII text, with very long lines
+        # 因为这里有几个文件的编码格式是`Windows 1252`，所以使用`try except`
         try:
             words = text_parse(
-                open('../../../input/4.NaiveBayes/email/spam/{}.txt'.format(i))
-                .read())
+                open(path + 'Data/spam/{}.txt'.format(i)).read())
         except:
             words = text_parse(
                 open(
-                    '../../../input/4.NaiveBayes/email/spam/{}.txt'.format(i),
+                    path + 'Data/spam/{}.txt'.format(i),
                     encoding='Windows 1252').read())
         doc_list.append(words)
         full_text.extend(words)
         class_list.append(1)
+        # 添加非垃圾邮件
         try:
-            # 添加非垃圾邮件
-            words = text_parse(
-                open('../../../input/4.NaiveBayes/email/ham/{}.txt'.format(i))
-                .read())
+            words = text_parse(open(path + 'Data/ham/{}.txt'.format(i)).read())
         except:
             words = text_parse(
                 open(
-                    '../../../input/4.NaiveBayes/email/ham/{}.txt'.format(i),
+                    path + 'Data/ham/{}.txt'.format(i),
                     encoding='Windows 1252').read())
         doc_list.append(words)
         full_text.extend(words)
         class_list.append(0)
     # 创建词汇表
     vocab_list = create_vocab_list(doc_list)
-    # 后面回过头来看这个操作真的有点弱智诶2333
-    training_set = list(range(50))
-    test_set = []
-    for i in range(10):
 
-        # 因为这个方法随机出来的不是一个整数,随机生成一个范围为 x - y 的实数
-        rand_index = int(uniform(0, len(training_set)))
-        test_set.append(training_set[rand_index])
-        del training_set[rand_index]
-    training_mat = []
-    training_class = []
+    # 生成随机取10个数, 为了避免警告将每个数都转换为整型
+    test_set = [int(num) for num in random.sample(range(50), 10)]
+    # 并在原来的training_set中去掉这10个数
+    training_set = list(set(range(50)) - set(test_set))
+
+    # 组成训练集
+    training_mat, training_class = [], []
     for doc_index in training_set:
         training_mat.append(set_of_words2vec(vocab_list, doc_list[doc_index]))
         training_class.append(class_list[doc_index])
+
+    # 开始训练
     p0v, p1v, p_spam = train_naive_bayes(
         np.array(training_mat), np.array(training_class))
 
@@ -341,7 +331,7 @@ def get_top_words():
 
 
 if __name__ == "__main__":
-    testing_naive_bayes()
-    # spam_test()
+    # testing_naive_bayes()
+    spam_test()
     # test_rss()
     # get_top_words()
