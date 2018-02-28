@@ -1,15 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-Created on 2017-06-28
-Updated on 2017-06-28
-NaiveBayes：朴素贝叶斯
-@author: 小瑶
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-"""
-
-
 # GaussianNB_高斯朴素贝叶斯
 import numpy as np
 X = np.array([[-1, -1], [-2, -1], [-3, -2], [1, 1], [2, 1], [3, 2]])
