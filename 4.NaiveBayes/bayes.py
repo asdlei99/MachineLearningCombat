@@ -2,11 +2,14 @@
 # -*- coding:utf-8 -*-
 # pylint: disable=E1101
 import numpy as np
-from numpy.random import uniform
 import sys
 import re
 import random
+from operator import itemgetter
+import feedparser
+
 path = sys.path[0]
+np.seterr(divide='ignore', invalid='ignore')
 
 # ------项目案例1: 屏蔽社区留言板的侮辱性言论------
 
@@ -229,7 +232,8 @@ def spam_test():
     error_count = 0
     for doc_index in test_set:
         word_vec = set_of_words2vec(vocab_list, doc_list[doc_index])
-        if classify_naive_bayes(np.array(word_vec), p0v, p1v, p_spam):
+        if classify_naive_bayes(np.array(word_vec), p0v, p1v,
+                                p_spam) != class_list[doc_index]:
             error_count += 1
     print('the error rate is {}'.format(error_count / len(test_set)))
 
@@ -240,21 +244,18 @@ def spam_test():
 
 def calc_most_freq(vocab_list, full_text):
     # RSS源分类器及高频词去除函数
-    from operator import itemgetter
     freq_dict = {}
     for token in vocab_list:
         freq_dict[token] = full_text.count(token)
     sorted_freq = sorted(freq_dict.items(), key=itemgetter(1), reverse=True)
-    return sorted_freq[0:30]
+    return sorted_freq[:30]
 
 
 def local_words(feed1, feed0):
-    # import feedparser # 其实呢，这一行没用到，最好删了
-    # 下面操作和上面那个 spam_test函数基本一样，理解了一个，两个都ok
+    # 基本同spam_test()
     doc_list = []
     class_list = []
     full_text = []
-    # 找出两个中最小的一个
     min_len = min(len(feed0), len(feed1))
     for i in range(min_len):
         # 类别　１
@@ -274,18 +275,18 @@ def local_words(feed1, feed0):
         if pair[0] in vocab_list:
             vocab_list.remove(pair[0])
     # 获取训练数据和测试数据
-    training_set = list(range(2 * min_len))
-    test_set = []
-    for i in range(20):
-        rand_index = int(uniform(0, len(training_set)))
-        test_set.append(training_set[rand_index])
-        del training_set[rand_index]
+
+    # 生成随机取10个数, 为了避免警告将每个数都转换为整型
+    test_set = [int(num) for num in random.sample(range(2 * min_len), 20)]
+    # 并在原来的training_set中去掉这10个数
+    training_set = list(set(range(2 * min_len)) - set(test_set))
+
     # 把这些训练集和测试集变成向量的形式
-    training_mat = []
-    training_class = []
+    training_mat, training_class = [], []
     for doc_index in training_set:
         training_mat.append(bag_words2vec(vocab_list, doc_list[doc_index]))
         training_class.append(class_list[doc_index])
+
     p0v, p1v, p_spam = train_naive_bayes(
         np.array(training_mat), np.array(training_class))
     error_count = 0
@@ -299,22 +300,17 @@ def local_words(feed1, feed0):
 
 
 def test_rss():
-    import feedparser
     ny = feedparser.parse('http://newyork.craigslist.org/stp/index.rss')
     sf = feedparser.parse('http://sfbay.craigslist.org/stp/index.rss')
     vocab_list, p_sf, p_nf = local_words(ny, sf)
-    vocab_list, p_sf, p_nf = local_words(ny, sf)
-    print(vocab_list, p_sf, p_nf)
-    # 返回值都没用上，可以用_, _, _代替
+    return vocab_list, p_sf, p_nf
 
 
 def get_top_words():
-    import feedparser
     ny = feedparser.parse('http://newyork.craigslist.org/stp/index.rss')
     sf = feedparser.parse('http://sfbay.craigslist.org/stp/index.rss')
     vocab_list, p_sf, p_ny = local_words(ny, sf)
-    top_ny = []
-    top_sf = []
+    top_ny, top_sf = [], []
     for i in range(len(p_sf)):
         if p_sf[i] > -6.0:
             top_sf.append((vocab_list[i], p_sf[i]))
@@ -324,14 +320,15 @@ def get_top_words():
     sorted_ny = sorted(top_ny, key=lambda pair: pair[1], reverse=True)
     print('\n----------- this is SF ---------------\n')
     for item in sorted_sf:
-        print(item[0])
+        print(item[0], end=", ")
     print('\n----------- this is NY ---------------\n')
     for item in sorted_ny:
-        print(item[0])
+        print(item[0], end=", ")
 
 
 if __name__ == "__main__":
     # testing_naive_bayes()
-    spam_test()
-    # test_rss()
-    # get_top_words()
+    # spam_test()
+    # vocab_list, p_sf, p_nf = test_rss()
+    get_top_words()
+    pass
