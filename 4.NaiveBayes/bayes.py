@@ -1,37 +1,24 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
-"""
-Created on Oct 19, 2010
-Update  on 2017-05-18
-@author: Peter Harrington/羊三/小瑶/BBruceyuan
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-"""
-
-# 我个人非常不喜欢 from numpy import *
-# 因为这样会和一些系统函数冲突，比如log, sum之类的
+# pylint: disable=E1101
 import numpy as np
-
-"""
-贝叶斯公式
-p(xy)=p(x|y)p(y)=p(y|x)p(x)
-p(x|y)=p(y|x)p(x)/p(y)
-"""
+from numpy.random import uniform
 
 # ------项目案例1: 屏蔽社区留言板的侮辱性言论------
 
 
 def load_data_set():
     """
-    创建数据集,都是假的 fake data set 
+    创建数据集
     :return: 单词列表posting_list, 所属类别class_vec
     """
-    posting_list = [
-        ['my', 'dog', 'has', 'flea', 'problems', 'help', 'please'],
-        ['maybe', 'not', 'take', 'him', 'to', 'dog', 'park', 'stupid'],
-        ['my', 'dalmation', 'is', 'so', 'cute', 'I', 'love', 'him'],
-        ['stop', 'posting', 'stupid', 'worthless', 'gar e'],
-        ['mr', 'licks', 'ate', 'my', 'steak', 'how', 'to', 'stop', 'him'],
-        ['quit', 'buying', 'worthless', 'dog', 'food', 'stupid']]
+    posting_list = [[
+        'my', 'dog', 'has', 'flea', 'problems', 'help', 'please'
+    ], ['maybe', 'not', 'take', 'him', 'to', 'dog', 'park', 'stupid'], [
+        'my', 'dalmation', 'is', 'so', 'cute', 'I', 'love', 'him'
+    ], ['stop', 'posting', 'stupid', 'worthless', 'gar e'], [
+        'mr', 'licks', 'ate', 'my', 'steak', 'how', 'to', 'stop', 'him'
+    ], ['quit', 'buying', 'worthless', 'dog', 'food', 'stupid']]
     class_vec = [0, 1, 0, 1, 0, 1]  # 1 is 侮辱性的文字, 0 is not
     return posting_list, class_vec
 
@@ -42,11 +29,12 @@ def create_vocab_list(data_set):
     :param data_set: 数据集
     :return: 所有单词的集合(即不含重复元素的单词列表)
     """
-    vocab_set = set()  # create empty set
-    for item in data_set:
-        # | 求两个集合的并集
-        vocab_set = vocab_set | set(item)
-    return list(vocab_set)
+
+    # 多维list转一维
+    def flatten(x):
+        return [y for l in x for y in flatten(l)] if type(x) is list else [x]
+
+    return list(set(flatten(data_set)))
 
 
 def set_of_words2vec(vocab_list, input_set):
@@ -59,13 +47,9 @@ def set_of_words2vec(vocab_list, input_set):
     # 创建一个和词汇表等长的向量，并将其元素都设置为0
     result = [0] * len(vocab_list)
     # 遍历文档中的所有单词，如果出现了词汇表中的单词，则将输出的文档向量中的对应值设为1
-    for word in input_set:
+    for word in set(input_set):
         if word in vocab_list:
             result[vocab_list.index(word)] = 1
-        else:
-            # 这个后面应该注释掉，因为对你没什么用，这只是为了辅助调试的
-            # print('the word: {} is not in my vocabulary'.format(word))
-            pass
     return result
 
 
@@ -76,25 +60,24 @@ def _train_naive_bayes(train_mat, train_category):
                     总的输入文本，大致是 [[0,1,0,1], [], []]
     :param train_category: 文件对应的类别分类， [0, 1, 0],
                             列表的长度应该等于上面那个输入文本的长度
-    :return: 
+    p0vec:　非侮辱文件的侮辱单词数与非侮辱文件的侮辱单词总数的对数
+    p1vec:　侮辱文件的侮辱单词数与侮辱文件的侮辱单词总数的对数
+    pos_abusive:　侮辱文件出现概率
     """
-    train_doc_num = len(train_mat)
+    train_doc_num = len(train_category)
     words_num = len(train_mat[0])
-    # 因为侮辱性的被标记为了1， 所以只要把他们相加就可以得到侮辱性的有多少
-    # 侮辱性文件的出现概率，即train_category中所有的1的个数，
-    # 代表的就是多少个侮辱性文件，与文件的总数相除就得到了侮辱性文件的出现概率
+    # 计算侮辱性文件出现概率，对已知分类进行求和（侮辱为1，不是为0），再除以总的句子数（文本数）
     pos_abusive = np.sum(train_category) / train_doc_num
     # 单词出现的次数
-    # 原版
     p0num = np.zeros(words_num)
     p1num = np.zeros(words_num)
 
-    # 整个数据集单词出现的次数（原来是0，后面改成2了）
+    # 整个数据集单词出现的次数
     p0num_all = 0
     p1num_all = 0
 
     for i in range(train_doc_num):
-        # 遍历所有的文件，如果是侮辱性文件，就计算此侮辱性文件中出现的侮辱性单词的个数
+        # 分别统计侮辱性文件和非侮辱性文件的侮辱单词数目，并求和
         if train_category[i] == 1:
             p1num += train_mat[i]
             p1num_all += np.sum(train_mat[i])
@@ -114,18 +97,16 @@ def train_naive_bayes(train_mat, train_category):
                     总的输入文本，大致是 [[0,1,0,1], [], []]
     :param train_category: 文件对应的类别分类， [0, 1, 0],
                             列表的长度应该等于上面那个输入文本的长度
-    :return: 
+    :return
+    p0vec:　非侮辱文件的侮辱单词数与非侮辱文件的侮辱单词总数的对数
+    p1vec:　侮辱文件的侮辱单词数与侮辱文件的侮辱单词总数的对数
+    pos_abusive:　侮辱文件出现概率
     """
-    train_doc_num = len(train_mat)
+    train_doc_num = len(train_category)
     words_num = len(train_mat[0])
-    # 因为侮辱性的被标记为了1， 所以只要把他们相加就可以得到侮辱性的有多少
-    # 侮辱性文件的出现概率，即train_category中所有的1的个数，
-    # 代表的就是多少个侮辱性文件，与文件的总数相除就得到了侮辱性文件的出现概率
+    # 计算侮辱性文件出现概率，对已知分类进行求和（侮辱为1，不是为0），再除以总的句子数（文本数）
     pos_abusive = np.sum(train_category) / train_doc_num
-    # 单词出现的次数
-    # 原版，变成ones是修改版，这是为了防止数字过小溢出
-    # p0num = np.zeros(words_num)
-    # p1num = np.zeros(words_num)
+    # 单词出现的次数。不使用zeros的原因是为了防止数字过小溢出
     p0num = np.ones(words_num)
     p1num = np.ones(words_num)
     # 整个数据集单词出现的次数（原来是0，后面改成2了）
@@ -133,14 +114,14 @@ def train_naive_bayes(train_mat, train_category):
     p1num_all = 2.0
 
     for i in range(train_doc_num):
-        # 遍历所有的文件，如果是侮辱性文件，就计算此侮辱性文件中出现的侮辱性单词的个数
+        # 分别统计侮辱性文件和非侮辱性文件的侮辱单词数目，并求和
         if train_category[i] == 1:
             p1num += train_mat[i]
             p1num_all += np.sum(train_mat[i])
         else:
             p0num += train_mat[i]
             p0num_all += np.sum(train_mat[i])
-    # 后面改成取 log 函数
+    # 对结果取 log
     p1vec = np.log(p1num / p1num_all)
     p0vec = np.log(p0num / p0num_all)
     return p0vec, p1vec, pos_abusive
@@ -162,6 +143,7 @@ def classify_naive_bayes(vec2classify, p0vec, p1vec, p_class1):
     # 使用 NumPy 数组来计算两个向量相乘的结果，这里的相乘是指对应元素相乘，即先将两个向量中的第一个元素相乘，然后将第2个元素相乘，以此类推。
     # 我的理解是：这里的 vec2Classify * p1Vec 的意思就是将每个词与其对应的概率相关联起来
     # 可以理解为 1.单词在词汇表中的条件下，文件是good 类别的概率 也可以理解为 2.在整个空间下，文件既在词汇表中又是good类别的概率
+
     p1 = np.sum(vec2classify * p1vec) + np.log(p_class1)
     p0 = np.sum(vec2classify * p0vec) + np.log(1 - p_class1)
     if p1 > p0:
@@ -192,22 +174,23 @@ def testing_naive_bayes():
     vocab_list = create_vocab_list(list_post)
 
     # 3. 计算单词是否出现并创建数据矩阵
-    train_mat = []
-    for post_in in list_post:
-        train_mat.append(
-            # 返回m*len(vocab_list)的矩阵， 记录的都是0，1信息
-            # 其实就是那个东西的句子向量（就是data_set里面每一行,也不算句子吧)
-            set_of_words2vec(vocab_list, post_in)
-        )
+    # data_set每行是否出现侮辱词汇，如果出现，在对应索引位置上标记为1否则为0
+    train_mat = [
+        set_of_words2vec(vocab_list, post_in) for post_in in list_post
+    ]
+
     # 4. 训练数据
-    p0v, p1v, p_abusive = train_naive_bayes(np.array(train_mat), np.array(list_classes))
+    p0v, p1v, p_abusive = train_naive_bayes(
+        np.array(train_mat), np.array(list_classes))
     # 5. 测试数据
     test_one = ['love', 'my', 'dalmation']
     test_one_doc = np.array(set_of_words2vec(vocab_list, test_one))
-    print('the result is: {}'.format(classify_naive_bayes(test_one_doc, p0v, p1v, p_abusive)))
+    print('the result is: {}'.format(
+        classify_naive_bayes(test_one_doc, p0v, p1v, p_abusive)))
     test_two = ['stupid', 'garbage']
     test_two_doc = np.array(set_of_words2vec(vocab_list, test_two))
-    print('the result is: {}'.format(classify_naive_bayes(test_two_doc, p0v, p1v, p_abusive)))
+    print('the result is: {}'.format(
+        classify_naive_bayes(test_two_doc, p0v, p1v, p_abusive)))
 
 
 # --------项目案例2: 使用朴素贝叶斯过滤垃圾邮件--------------
@@ -246,17 +229,27 @@ def spam_test():
         # 如果正常能读返回的都是：　ASCII text
         # 对于except需要处理的都是返回： Non-ISO extended-ASCII text, with very long lines
         try:
-            words = text_parse(open('../../../input/4.NaiveBayes/email/spam/{}.txt'.format(i)).read())
+            words = text_parse(
+                open('../../../input/4.NaiveBayes/email/spam/{}.txt'.format(i))
+                .read())
         except:
-            words = text_parse(open('../../../input/4.NaiveBayes/email/spam/{}.txt'.format(i), encoding='Windows 1252').read())
+            words = text_parse(
+                open(
+                    '../../../input/4.NaiveBayes/email/spam/{}.txt'.format(i),
+                    encoding='Windows 1252').read())
         doc_list.append(words)
         full_text.extend(words)
         class_list.append(1)
         try:
             # 添加非垃圾邮件
-            words = text_parse(open('../../../input/4.NaiveBayes/email/ham/{}.txt'.format(i)).read())
+            words = text_parse(
+                open('../../../input/4.NaiveBayes/email/ham/{}.txt'.format(i))
+                .read())
         except:
-            words = text_parse(open('../../../input/4.NaiveBayes/email/ham/{}.txt'.format(i), encoding='Windows 1252').read())
+            words = text_parse(
+                open(
+                    '../../../input/4.NaiveBayes/email/ham/{}.txt'.format(i),
+                    encoding='Windows 1252').read())
         doc_list.append(words)
         full_text.extend(words)
         class_list.append(0)
@@ -266,8 +259,9 @@ def spam_test():
     training_set = list(range(50))
     test_set = []
     for i in range(10):
+
         # 因为这个方法随机出来的不是一个整数,随机生成一个范围为 x - y 的实数
-        rand_index = int(np.random.uniform(0, len(training_set)))
+        rand_index = int(uniform(0, len(training_set)))
         test_set.append(training_set[rand_index])
         del training_set[rand_index]
     training_mat = []
@@ -276,24 +270,16 @@ def spam_test():
         training_mat.append(set_of_words2vec(vocab_list, doc_list[doc_index]))
         training_class.append(class_list[doc_index])
     p0v, p1v, p_spam = train_naive_bayes(
-        np.array(training_mat),
-        np.array(training_class)
-    )
+        np.array(training_mat), np.array(training_class))
 
     # 开始测试
     error_count = 0
     for doc_index in test_set:
         word_vec = set_of_words2vec(vocab_list, doc_list[doc_index])
-        if classify_naive_bayes(
-            np.array(word_vec),
-            p0v,
-            p1v,
-            p_spam
-        ):
+        if classify_naive_bayes(np.array(word_vec), p0v, p1v, p_spam):
             error_count += 1
-    print('the error rate is {}'.format(
-        error_count / len(test_set)
-    ))
+    print('the error rate is {}'.format(error_count / len(test_set)))
+
 
 # ----- 项目案例3: 使用朴素贝叶斯从个人广告中获取区域倾向 ------
 # 其中有几个函数上面都写过了，没必要再写一遍了，所以删了
@@ -338,7 +324,7 @@ def local_words(feed1, feed0):
     training_set = list(range(2 * min_len))
     test_set = []
     for i in range(20):
-        rand_index = int(np.random.uniform(0, len(training_set)))
+        rand_index = int(uniform(0, len(training_set)))
         test_set.append(training_set[rand_index])
         del training_set[rand_index]
     # 把这些训练集和测试集变成向量的形式
@@ -348,18 +334,12 @@ def local_words(feed1, feed0):
         training_mat.append(bag_words2vec(vocab_list, doc_list[doc_index]))
         training_class.append(class_list[doc_index])
     p0v, p1v, p_spam = train_naive_bayes(
-        np.array(training_mat),
-        np.array(training_class)
-    )
+        np.array(training_mat), np.array(training_class))
     error_count = 0
     for doc_index in test_set:
         word_vec = bag_words2vec(vocab_list, doc_list[doc_index])
-        if classify_naive_bayes(
-            np.array(word_vec),
-            p0v,
-            p1v,
-            p_spam
-        ) != class_list[doc_index]:
+        if classify_naive_bayes(np.array(word_vec), p0v, p1v,
+                                p_spam) != class_list[doc_index]:
             error_count += 1
     print("the error rate is {}".format(error_count / len(test_set)))
     return vocab_list, p0v, p1v
@@ -371,6 +351,7 @@ def test_rss():
     sf = feedparser.parse('http://sfbay.craigslist.org/stp/index.rss')
     vocab_list, p_sf, p_nf = local_words(ny, sf)
     vocab_list, p_sf, p_nf = local_words(ny, sf)
+    print(vocab_list, p_sf, p_nf)
     # 返回值都没用上，可以用_, _, _代替
 
 
@@ -397,7 +378,7 @@ def get_top_words():
 
 
 if __name__ == "__main__":
-    # testing_naive_bayes()
+    testing_naive_bayes()
     # spam_test()
     # test_rss()
-    get_top_words()
+    # get_top_words()
