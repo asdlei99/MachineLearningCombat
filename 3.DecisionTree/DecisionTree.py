@@ -4,9 +4,9 @@ import pickle
 from math import log
 import decisionTreePlot as dtPlot
 from collections import Counter
-import sys
+import os
 
-path = sys.path[0]
+path = os.getcwd()
 
 
 def createDataSet():
@@ -230,7 +230,7 @@ def ContactLensesTest():
         none
     """
 
-    with open(path + 'Data/lenses.txt', 'r') as fr:
+    with open(path + '/Data/lenses.txt', 'r') as fr:
         lenses = [inst.strip().split('\t') for inst in fr.readlines()]
         # 得到数据的对应的 Labels
         lensesLabels = ['age', 'prescript', 'astigmatic', 'tearRate']

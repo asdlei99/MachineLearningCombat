@@ -4,10 +4,9 @@
 import operator
 import os
 from collections import Counter
-import sys
 import numpy as np
 
-path = sys.path[0]
+path = os.getcwd()
 
 def createDataSet():
     """

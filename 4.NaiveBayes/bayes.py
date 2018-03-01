@@ -2,13 +2,13 @@
 # -*- coding:utf-8 -*-
 # pylint: disable=E1101
 import numpy as np
-import sys
+import os
 import re
 import random
 from operator import itemgetter
 import feedparser
 
-path = sys.path[0]
+path = os.getcwd()
 np.seterr(divide='ignore', invalid='ignore')
 
 # ------项目案例1: 屏蔽社区留言板的侮辱性言论------
@@ -190,22 +190,22 @@ def spam_test():
         # 因为这里有几个文件的编码格式是`Windows 1252`，所以使用`try except`
         try:
             words = text_parse(
-                open(path + 'Data/spam/{}.txt'.format(i)).read())
+                open(path + '/Data/spam/{}.txt'.format(i)).read())
         except:
             words = text_parse(
                 open(
-                    path + 'Data/spam/{}.txt'.format(i),
+                    path + '/Data/spam/{}.txt'.format(i),
                     encoding='Windows 1252').read())
         doc_list.append(words)
         full_text.extend(words)
         class_list.append(1)
         # 添加非垃圾邮件
         try:
-            words = text_parse(open(path + 'Data/ham/{}.txt'.format(i)).read())
+            words = text_parse(open(path + '/Data/ham/{}.txt'.format(i)).read())
         except:
             words = text_parse(
                 open(
-                    path + 'Data/ham/{}.txt'.format(i),
+                    path + '/Data/ham/{}.txt'.format(i),
                     encoding='Windows 1252').read())
         doc_list.append(words)
         full_text.extend(words)

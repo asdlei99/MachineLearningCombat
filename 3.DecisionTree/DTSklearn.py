@@ -1,21 +1,21 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import sys
+import os
 import numpy as np
 from sklearn import tree
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import classification_report
 from sklearn.cross_validation import train_test_split
 
-path = sys.path[0]
+path = os.getcwd()
 
 
 def createDataSet():
     ''' 数据读入 '''
     data = []
     labels = []
-    with open(path + "Data/data.txt") as ifile:
+    with open(path + "/Data/data.txt") as ifile:
         for line in ifile:
             # 特征： 身高 体重   label： 胖瘦(fat)
             tokens = line.strip().split(" ")
