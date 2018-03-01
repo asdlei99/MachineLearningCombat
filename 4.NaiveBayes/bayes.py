@@ -239,7 +239,6 @@ def spam_test():
 
 
 # ----- 项目案例3: 使用朴素贝叶斯从个人广告中获取区域倾向 ------
-# 其中有几个函数上面都写过了，没必要再写一遍了，所以删了
 
 
 def calc_most_freq(vocab_list, full_text):
@@ -330,5 +329,5 @@ if __name__ == "__main__":
     # testing_naive_bayes()
     # spam_test()
     # vocab_list, p_sf, p_nf = test_rss()
-    get_top_words()
+    # get_top_words()
     pass
