@@ -67,3 +67,19 @@ array数组转换为矩阵
 #### sklearn_nb_demo.py
 
 使用`sklearn`实现高斯朴素贝叶斯、多项朴素贝叶斯、伯努利朴素贝叶斯
+
+### 5.Logistic
+
+实现逻辑回归算法
+
+#### logistic.py
+
+1. test: 检验逻辑回归算法
+
+2. colic_test: 疝气病症预测病马的死亡率
+
+3. multi_test: 多次调用上面的函数求平均值
+
+#### sklearn_logisticRegression_demo.py
+
+调用`sklearn`的各种LR模型，实现逻辑回归
