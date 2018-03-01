@@ -1,5 +1,9 @@
 ## logistic.py
 
+### 最大似然法
+
+[Logistic回归总结](http://blog.csdn.net/achuo/article/details/51160101)
+
 ### 梯度上升的三种方法
 
 1. grad_ascent(data_arr, class_labels):
@@ -40,3 +44,7 @@ array([ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.])
 ###　np.mat与np.array
 
 都用于转换数组，用法基本一直。mat矩阵可以用于点乘，array数组不能用于点乘
+
+### np.transpose()与np.T
+
+作用都是转置，但是transpose允许添加参数
