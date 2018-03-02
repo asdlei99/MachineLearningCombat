@@ -1,23 +1,13 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
-
-"""
-Created on 2017-06-28
-Updated on 2017-06-28
-SVM：最大边距分离超平面
-@author: 片刻
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-sklearn-SVM译文链接: http://cwiki.apachecn.org/pages/viewpage.action?pageId=10031359
-"""
+# pylint: disable=E1101
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import svm
-
-print(__doc__)
-
+from numpy.random import seed
 
 # 创建40个分离点
-np.random.seed(0)
+seed(0)
 # X = np.r_[np.random.randn(20, 2) - [2, 2], np.random.randn(20, 2) + [2, 2]]
 # Y = [0] * 20 + [1] * 20
 
@@ -41,7 +31,7 @@ def loadDataSet(fileName):
     return dataMat, labelMat
 
 
-X, Y = loadDataSet('../../../input/6.SVM/testSet.txt')
+X, Y = loadDataSet('Data/testSet.txt')
 X = np.mat(X)
 
 print("X=", X)
