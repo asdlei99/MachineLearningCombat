@@ -1,27 +1,22 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-Created on Nov 4, 2010
-Update on 2017-05-18
-Chapter 5 source file for Machine Learing in Action
-@author: Peter/geekidentity/片刻
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-"""
-from numpy import *
+import numpy as np
 import matplotlib.pyplot as plt
-
+from numpy.random import randint
 
 class optStruct:
-    def __init__(self, dataMatIn, classLabels, C, toler):  # Initialize the structure with the parameters
+    def __init__(self, dataMatIn, classLabels, C,
+                 toler):  # Initialize the structure with the parameters
         self.X = dataMatIn
         self.labelMat = classLabels
         self.C = C
         self.tol = toler
-        self.m = shape(dataMatIn)[0]
-        self.alphas = mat(zeros((self.m, 1)))
+        self.m = np.shape(dataMatIn)[0]
+        self.alphas = np.mat(np.zeros((self.m, 1)))
         self.b = 0
-        self.eCache = mat(zeros((self.m, 2)))  # first column is valid flag
+        self.eCache = np.mat(np.zeros((self.m,
+                                       2)))  # first column is valid flag
 
 
 def loadDataSet(fileName):
@@ -33,13 +28,12 @@ def loadDataSet(fileName):
         dataMat  数据矩阵
         labelMat 类标签
     """
-    dataMat = []
-    labelMat = []
-    fr = open(fileName)
-    for line in fr.readlines():
-        lineArr = line.strip().split('\t')
-        dataMat.append([float(lineArr[0]), float(lineArr[1])])
-        labelMat.append(float(lineArr[2]))
+    dataMat, labelMat = [], []
+    with open(fileName, "r") as fr:
+        for line in fr.readlines():
+            lineArr = line.strip().split('\t')
+            dataMat.append([float(lineArr[0]), float(lineArr[1])])
+            labelMat.append(float(lineArr[2]))
     return dataMat, labelMat
 
 
@@ -54,7 +48,7 @@ def selectJrand(i, m):
     """
     j = i
     while j == i:
-        j = random.randint(0, m - 1)
+        j = randint(0, m - 1)
     return j
 
 
@@ -83,7 +77,7 @@ def calcEk(oS, k):
     Returns:
         Ek  预测结果与真实结果比对，计算误差Ek
     """
-    fXk = multiply(oS.alphas, oS.labelMat).T * (oS.X * oS.X[k].T) + oS.b
+    fXk = np.multiply(oS.alphas, oS.labelMat).T * (oS.X * oS.X[k].T) + oS.b
     Ek = fXk - float(oS.labelMat[k])
     return Ek
 
@@ -110,20 +104,8 @@ def selectJ(i, oS, Ei):  # this is the second choice -heurstic, and calcs Ej
     # 首先将输入值Ei在缓存中设置成为有效的。这里的有效意味着它已经计算好了。
     oS.eCache[i] = [1, Ei]
 
-    # print('oS.eCache[%s]=%s' % (i, oS.eCache[i]))
-    # print('oS.eCache[:, 0].A=%s' % oS.eCache[:, 0].A.T)
-    # """
-    # # 返回非0的：行列值
-    # nonzero(oS.eCache[:, 0].A)= (
-    #     行： array([ 0,  2,  4,  5,  8, 10, 17, 18, 20, 21, 23, 25, 26, 29, 30, 39, 46,52, 54, 55, 62, 69, 70, 76, 79, 82, 94, 97]),
-    #     列： array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,0, 0, 0, 0, 0])
-    # )
-    # """
-    # print('nonzero(oS.eCache[:, 0].A)=', nonzero(oS.eCache[:, 0].A))
-    # # 取行的list
-    # print('nonzero(oS.eCache[:, 0].A)[0]=', nonzero(oS.eCache[:, 0].A)[0])
     # 非零E值的行的list列表，所对应的alpha值
-    validEcacheList = nonzero(oS.eCache[:, 0].A)[0]
+    validEcacheList = np.nonzero(oS.eCache[:, 0].A)[0]
     if (len(validEcacheList)) > 1:
         for k in validEcacheList:  # 在所有的值上进行循环，并选择其中使得改变最大的那个值
             if k == i:
@@ -145,7 +127,9 @@ def selectJ(i, oS, Ei):  # this is the second choice -heurstic, and calcs Ej
     return j, Ej
 
 
-def updateEk(oS, k):  # after any alpha has changed update the new value in the cache
+def updateEk(
+        oS,
+        k):  # after any alpha has changed update the new value in the cache
     """updateEk（计算误差值并存入缓存中。）
 
     在对alpha值进行优化之后会用到这个值。
@@ -183,7 +167,9 @@ def innerL(i, oS):
     yi*f(i) == 1 and 0<alpha< C (on the boundary)
     yi*f(i) <= 1 and alpha = C (between the boundary)
     '''
-    if ((oS.labelMat[i] * Ei < -oS.tol) and (oS.alphas[i] < oS.C)) or ((oS.labelMat[i] * Ei > oS.tol) and (oS.alphas[i] > 0)):
+    if ((oS.labelMat[i] * Ei < -oS.tol) and
+        (oS.alphas[i] < oS.C)) or ((oS.labelMat[i] * Ei > oS.tol) and
+                                   (oS.alphas[i] > 0)):
         # 选择最大的误差对应的j进行优化。效果更明显
         j, Ej = selectJ(i, oS, Ei)
         alphaIold = oS.alphas[i].copy()
@@ -203,7 +189,7 @@ def innerL(i, oS):
         # eta是alphas[j]的最优修改量，如果eta==0，需要退出for循环的当前迭代过程
         # 参考《统计学习方法》李航-P125~P128<序列最小最优化算法>
         eta = oS.X[i] - oS.X[j]
-        eta = - eta * eta.T
+        eta = -eta * eta.T
         if eta >= 0:
             print("eta>=0")
             return 0
@@ -221,7 +207,8 @@ def innerL(i, oS):
             return 0
 
         # 然后alphas[i]和alphas[j]同样进行改变，虽然改变的大小一样，但是改变的方向正好相反
-        oS.alphas[i] += oS.labelMat[j] * oS.labelMat[i] * (alphaJold - oS.alphas[j])
+        oS.alphas[i] += oS.labelMat[j] * oS.labelMat[i] * (
+            alphaJold - oS.alphas[j])
         # 更新误差缓存
         updateEk(oS, i)
 
@@ -229,8 +216,14 @@ def innerL(i, oS):
         # w= Σ[1~n] ai*yi*xi => b = yj Σ[1~n] ai*yi(xi*xj)
         # 所以：  b1 - b = (y1-y) - Σ[1~n] yi*(a1-a)*(xi*x1)
         # 为什么减2遍？ 因为是 减去Σ[1~n]，正好2个变量i和j，所以减2遍
-        b1 = oS.b - Ei - oS.labelMat[i] * (oS.alphas[i] - alphaIold) * oS.X[i] * oS.X[i].T - oS.labelMat[j] * (oS.alphas[j] - alphaJold) * oS.X[i] * oS.X[j].T
-        b2 = oS.b - Ej - oS.labelMat[i] * (oS.alphas[i] - alphaIold) * oS.X[i] * oS.X[j].T - oS.labelMat[j] * (oS.alphas[j] - alphaJold) * oS.X[j] * oS.X[j].T
+        b1 = oS.b - Ei - oS.labelMat[i] * (
+            oS.alphas[i] - alphaIold
+        ) * oS.X[i] * oS.X[i].T - oS.labelMat[j] * (
+            oS.alphas[j] - alphaJold) * oS.X[i] * oS.X[j].T
+        b2 = oS.b - Ej - oS.labelMat[i] * (
+            oS.alphas[i] - alphaIold
+        ) * oS.X[i] * oS.X[j].T - oS.labelMat[j] * (
+            oS.alphas[j] - alphaJold) * oS.X[j] * oS.X[j].T
         if (0 < oS.alphas[i]) and (oS.C > oS.alphas[i]):
             oS.b = b1
         elif (0 < oS.alphas[j]) and (oS.C > oS.alphas[j]):
@@ -259,7 +252,9 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter):
     """
 
     # 创建一个 optStruct 对象
-    oS = optStruct(mat(dataMatIn), mat(classLabels).transpose(), C, toler)
+    oS = optStruct(
+        np.mat(dataMatIn),
+        np.mat(classLabels).transpose(), C, toler)
     iter = 0
     entireSet = True
     alphaPairsChanged = 0
@@ -275,27 +270,30 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter):
             for i in range(oS.m):
                 # 是否存在alpha对，存在就+1
                 alphaPairsChanged += innerL(i, oS)
-                print("fullSet, iter: %d i:%d, pairs changed %d" % (iter, i, alphaPairsChanged))
+                print("fullSet, iter: %d i:%d, pairs changed %d" %
+                      (iter, i, alphaPairsChanged))
             iter += 1
         # 对已存在 alpha对，选出非边界的alpha值，进行优化。
         else:
             # 遍历所有的非边界alpha值，也就是不在边界0或C上的值。
-            nonBoundIs = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]
+            nonBoundIs = np.nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]
             for i in nonBoundIs:
                 alphaPairsChanged += innerL(i, oS)
-                print("non-bound, iter: %d i:%d, pairs changed %d" % (iter, i, alphaPairsChanged))
+                print("non-bound, iter: %d i:%d, pairs changed %d" %
+                      (iter, i, alphaPairsChanged))
             iter += 1
         # ----------- 第一种写法 end -------------------------
 
         # ----------- 第二种方法 start -------------------------
         # if entireSet:																				#遍历整个数据集
-    	# 	alphaPairsChanged += sum(innerL(i, oS) for i in range(oS.m))
-		# else: 																						#遍历非边界值
-		# 	nonBoundIs = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]						#遍历不在边界0和C的alpha
-		# 	alphaPairsChanged += sum(innerL(i, oS) for i in nonBoundIs)
-		# iter += 1
-        # ----------- 第二种方法 end -------------------------
-        # 如果找到alpha对，就优化非边界alpha值，否则，就重新进行寻找，如果寻找一遍 遍历所有的行还是没找到，就退出循环。
+    # 	alphaPairsChanged += sum(innerL(i, oS) for i in range(oS.m))
+
+# else: 																						#遍历非边界值
+# 	nonBoundIs = nonzero((oS.alphas.A > 0) * (oS.alphas.A < C))[0]						#遍历不在边界0和C的alpha
+# 	alphaPairsChanged += sum(innerL(i, oS) for i in nonBoundIs)
+# iter += 1
+# ----------- 第二种方法 end -------------------------
+# 如果找到alpha对，就优化非边界alpha值，否则，就重新进行寻找，如果寻找一遍 遍历所有的行还是没找到，就退出循环。
         if entireSet:
             entireSet = False  # toggle entire set loop
         elif alphaPairsChanged == 0:
@@ -315,12 +313,12 @@ def calcWs(alphas, dataArr, classLabels):
     Returns:
         wc  回归系数
     """
-    X = mat(dataArr)
-    labelMat = mat(classLabels).T
-    m, n = shape(X)
-    w = zeros((n, 1))
+    X = np.mat(dataArr)
+    labelMat = np.mat(classLabels).T
+    m, n = np.shape(X)
+    w = np.zeros((n, 1))
     for i in range(m):
-        w += multiply(alphas[i] * labelMat[i], X[i].T)
+        w += np.multiply(alphas[i] * labelMat[i], X[i].T)
     return w
 
 
@@ -332,11 +330,11 @@ def plotfig_SVM(xArr, yArr, ws, b, alphas):
        http://blog.csdn.net/kkxgx/article/details/6951959
     """
 
-    xMat = mat(xArr)
-    yMat = mat(yArr)
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr)
 
     # b原来是矩阵，先转为数组类型后其数组大小为（1,1），所以后面加[0]，变为(1,)
-    b = array(b)[0]
+    b = np.array(b)[0]
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
@@ -344,13 +342,13 @@ def plotfig_SVM(xArr, yArr, ws, b, alphas):
     ax.scatter(xMat[:, 0].flatten().A[0], xMat[:, 1].flatten().A[0])
 
     # x最大值，最小值根据原数据集dataArr[:, 0]的大小而定
-    x = arange(-1.0, 10.0, 0.1)
+    x = np.arange(-1.0, 10.0, 0.1)
 
     # 根据x.w + b = 0 得到，其式子展开为w0.x1 + w1.x2 + b = 0, x2就是y值
-    y = (- b - ws[0, 0] * x) / ws[1, 0]
+    y = (-b - ws[0, 0] * x) / ws[1, 0]
     ax.plot(x, y)
 
-    for i in range(shape(yMat[0])[1]):
+    for i in range(np.shape(yMat[0])[1]):
         if yMat[0, i] > 0:
             ax.plot(xMat[i, 0], xMat[i, 1], 'cx')
         else:
@@ -373,7 +371,7 @@ if __name__ == "__main__":
     print('/n/n/n')
     print('b=', b)
     print('alphas[alphas>0]=', alphas[alphas > 0])
-    print('shape(alphas[alphas > 0])=', shape(alphas[alphas > 0]))
+    print('shape(alphas[alphas > 0])=', np.shape(alphas[alphas > 0]))
     for i in range(100):
         if alphas[i] > 0:
             print(dataArr[i], labelArr[i])
