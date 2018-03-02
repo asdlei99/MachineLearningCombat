@@ -15,13 +15,12 @@ def loadDataSet(fileName):
         dataMat  特征矩阵
         labelMat 类标签
     """
-    dataMat = []
-    labelMat = []
-    fr = open(fileName)
-    for line in fr.readlines():
-        lineArr = line.strip().split('\t')
-        dataMat.append([float(lineArr[0]), float(lineArr[1])])
-        labelMat.append(float(lineArr[2]))
+    dataMat, labelMat = [], []
+    with open(fileName, "r") as fr:
+        for line in fr.readlines():
+            lineArr = line.strip().split('\t')
+            dataMat.append([float(lineArr[0]), float(lineArr[1])])
+            labelMat.append(float(lineArr[2]))
     return dataMat, labelMat
 
 
@@ -49,10 +48,8 @@ def clipAlpha(aj, H, L):
     Returns:
         aj  目标值
     """
-    if aj > H:
-        aj = H
-    if L > aj:
-        aj = L
+    aj = H if aj > H else aj
+    aj = L if aj < L else aj
     return aj
 
 
@@ -72,7 +69,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
         alphas  拉格朗日乘子
     """
     dataMatrix = np.mat(dataMatIn)
-    # 矩阵转置 和 .T 一样的功能
+    # 矩阵转置
     labelMat = np.mat(classLabels).transpose()
     m, _ = np.shape(dataMatrix)
 
@@ -89,10 +86,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
         # 记录alpha是否已经进行优化，每次循环时设为0，然后再对整个集合顺序遍历
         alphaPairsChanged = 0
         for i in range(m):
-            # print('alphas=', alphas)
-            # print('labelMat=', labelMat)
-            # print('multiply(alphas, labelMat)=', multiply(alphas, labelMat))
-            # 我们预测的类别 y = w^Tx[i]+b; 其中因为 w = Σ(1~n) a[n]*lable[n]*x[n]
+            # 我们预测的类别 y = w^Tx[i]+b; 其中 w = Σ(1~n) a[n]*lable[n]*x[n]
             fXi = float(
                 np.multiply(alphas, labelMat).T *
                 (dataMatrix * dataMatrix[i, :].T)) + b
@@ -130,7 +124,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
                 else:
                     L = max(0, alphas[j] + alphas[i] - C)
                     H = min(C, alphas[j] + alphas[i])
-                # 如果相同，就没发优化了
+                # 如果相同，就没办法优化了
                 if L == H:
                     print("L==H")
                     continue
@@ -247,7 +241,7 @@ def plotfig_SVM(xMat, yMat, ws, b, alphas):
 
 if __name__ == "__main__":
     # 获取特征和目标变量
-    dataArr, labelArr = loadDataSet('../../../input/6.SVM/testSet.txt')
+    dataArr, labelArr = loadDataSet('Data/testSet.txt')
     # print(labelArr)
 
     # b是常量值， alphas是拉格朗日乘子
