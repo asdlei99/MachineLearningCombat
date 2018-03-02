@@ -1,14 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-Created on Nov 4, 2010
-Update on 2017-05-18
-Chapter 5 source file for Machine Learing in Action
-@author: Peter/geekidentity/片刻
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-"""
-from numpy import *
+import numpy as np
+from numpy.random import uniform
 import matplotlib.pyplot as plt
 
 
@@ -42,7 +36,7 @@ def selectJrand(i, m):
     """
     j = i
     while j == i:
-        j = int(random.uniform(0, m))
+        j = int(uniform(0, m))
     return j
 
 
@@ -77,14 +71,14 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
         b       模型的常量值
         alphas  拉格朗日乘子
     """
-    dataMatrix = mat(dataMatIn)
+    dataMatrix = np.mat(dataMatIn)
     # 矩阵转置 和 .T 一样的功能
-    labelMat = mat(classLabels).transpose()
-    m, n = shape(dataMatrix)
+    labelMat = np.mat(classLabels).transpose()
+    m, _ = np.shape(dataMatrix)
 
     # 初始化 b和alphas(alpha有点类似权重值。)
     b = 0
-    alphas = mat(zeros((m, 1)))
+    alphas = np.mat(np.zeros((m, 1)))
 
     # 没有任何alpha改变的情况下遍历数据的次数
     iter = 0
@@ -99,7 +93,9 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
             # print('labelMat=', labelMat)
             # print('multiply(alphas, labelMat)=', multiply(alphas, labelMat))
             # 我们预测的类别 y = w^Tx[i]+b; 其中因为 w = Σ(1~n) a[n]*lable[n]*x[n]
-            fXi = float(multiply(alphas, labelMat).T*(dataMatrix*dataMatrix[i, :].T)) + b
+            fXi = float(
+                np.multiply(alphas, labelMat).T *
+                (dataMatrix * dataMatrix[i, :].T)) + b
             # 预测结果与真实结果比对，计算误差Ei
             Ei = fXi - float(labelMat[i])
 
@@ -112,12 +108,16 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
             yi*f(i) == 1 and 0<alpha< C (on the boundary)
             yi*f(i) <= 1 and alpha = C (between the boundary)
             '''
-            if ((labelMat[i]*Ei < -toler) and (alphas[i] < C)) or ((labelMat[i]*Ei > toler) and (alphas[i] > 0)):
+            if ((labelMat[i] * Ei < -toler) and
+                (alphas[i] < C)) or ((labelMat[i] * Ei > toler) and
+                                     (alphas[i] > 0)):
 
                 # 如果满足优化的条件，我们就随机选取非i的一个点，进行优化比较
                 j = selectJrand(i, m)
                 # 预测j的结果
-                fXj = float(multiply(alphas, labelMat).T*(dataMatrix*dataMatrix[j, :].T)) + b
+                fXj = float(
+                    np.multiply(alphas, labelMat).T *
+                    (dataMatrix * dataMatrix[j, :].T)) + b
                 Ej = fXj - float(labelMat[j])
                 alphaIold = alphas[i].copy()
                 alphaJold = alphas[j].copy()
@@ -137,13 +137,13 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
 
                 # eta是alphas[j]的最优修改量，如果eta==0，需要退出for循环的当前迭代过程
                 # 参考《统计学习方法》李航-P125~P128<序列最小最优化算法>
-                eta = 2.0 * dataMatrix[i, :]*dataMatrix[j, :].T - dataMatrix[i, :]*dataMatrix[i, :].T - dataMatrix[j, :]*dataMatrix[j, :].T
+                eta = 2.0 * dataMatrix[i, :] * dataMatrix[j, :].T - dataMatrix[i, :] * dataMatrix[i, :].T - dataMatrix[j, :] * dataMatrix[j, :].T
                 if eta >= 0:
                     print("eta>=0")
                     continue
 
                 # 计算出一个新的alphas[j]值
-                alphas[j] -= labelMat[j]*(Ei - Ej)/eta
+                alphas[j] -= labelMat[j] * (Ei - Ej) / eta
                 # 并使用辅助函数，以及L和H对其进行调整
                 alphas[j] = clipAlpha(alphas[j], H, L)
                 # 检查alpha[j]是否只是轻微的改变，如果是的话，就退出for循环。
@@ -151,21 +151,31 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
                     print("j not moving enough")
                     continue
                 # 然后alphas[i]和alphas[j]同样进行改变，虽然改变的大小一样，但是改变的方向正好相反
-                alphas[i] += labelMat[j]*labelMat[i]*(alphaJold - alphas[j])
+                alphas[i] += labelMat[j] * labelMat[i] * (
+                    alphaJold - alphas[j])
                 # 在对alpha[i], alpha[j] 进行优化之后，给这两个alpha值设置一个常数b。
                 # w= Σ[1~n] ai*yi*xi => b = yj- Σ[1~n] ai*yi(xi*xj)
                 # 所以：  b1 - b = (y1-y) - Σ[1~n] yi*(a1-a)*(xi*x1)
                 # 为什么减2遍？ 因为是 减去Σ[1~n]，正好2个变量i和j，所以减2遍
-                b1 = b - Ei- labelMat[i]*(alphas[i]-alphaIold)*dataMatrix[i, :]*dataMatrix[i, :].T - labelMat[j]*(alphas[j]-alphaJold)*dataMatrix[i, :]*dataMatrix[j, :].T
-                b2 = b - Ej- labelMat[i]*(alphas[i]-alphaIold)*dataMatrix[i, :]*dataMatrix[j, :].T - labelMat[j]*(alphas[j]-alphaJold)*dataMatrix[j, :]*dataMatrix[j, :].T
+                b1 = b - Ei - labelMat[i] * (
+                    alphas[i] - alphaIold
+                ) * dataMatrix[i, :] * dataMatrix[i, :].T - labelMat[j] * (
+                    alphas[j] - alphaJold
+                ) * dataMatrix[i, :] * dataMatrix[j, :].T
+                b2 = b - Ej - labelMat[i] * (
+                    alphas[i] - alphaIold
+                ) * dataMatrix[i, :] * dataMatrix[j, :].T - labelMat[j] * (
+                    alphas[j] - alphaJold
+                ) * dataMatrix[j, :] * dataMatrix[j, :].T
                 if (0 < alphas[i]) and (C > alphas[i]):
                     b = b1
                 elif (0 < alphas[j]) and (C > alphas[j]):
                     b = b2
                 else:
-                    b = (b1 + b2)/2.0
+                    b = (b1 + b2) / 2.0
                 alphaPairsChanged += 1
-                print("iter: %d i:%d, pairs changed %d" % (iter, i, alphaPairsChanged))
+                print("iter: %d i:%d, pairs changed %d" % (iter, i,
+                                                           alphaPairsChanged))
         # 在for循环外，检查alpha值是否做了更新，如果在更新则将iter设为0后继续运行程序
         # 知道更新完毕后，iter次循环无变化，才推出循环。
         if (alphaPairsChanged == 0):
@@ -187,12 +197,12 @@ def calcWs(alphas, dataArr, classLabels):
     Returns:
         wc  回归系数
     """
-    X = mat(dataArr)
-    labelMat = mat(classLabels).transpose()
-    m, n = shape(X)
-    w = zeros((n, 1))
+    X = np.mat(dataArr)
+    labelMat = np.mat(classLabels).transpose()
+    m, n = np.shape(X)
+    w = np.zeros((n, 1))
     for i in range(m):
-        w += multiply(alphas[i] * labelMat[i], X[i, :].T)
+        w += np.multiply(alphas[i] * labelMat[i], X[i, :].T)
     return w
 
 
@@ -204,11 +214,11 @@ def plotfig_SVM(xMat, yMat, ws, b, alphas):
        http://blog.csdn.net/kkxgx/article/details/6951959
     """
 
-    xMat = mat(xMat)
-    yMat = mat(yMat)
+    xMat = np.mat(xMat)
+    yMat = np.mat(yMat)
 
     # b原来是矩阵，先转为数组类型后其数组大小为（1,1），所以后面加[0]，变为(1,)
-    b = array(b)[0]
+    b = np.array(b)[0]
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
@@ -216,13 +226,13 @@ def plotfig_SVM(xMat, yMat, ws, b, alphas):
     ax.scatter(xMat[:, 0].flatten().A[0], xMat[:, 1].flatten().A[0])
 
     # x最大值，最小值根据原数据集dataArr[:, 0]的大小而定
-    x = arange(-1.0, 10.0, 0.1)
+    x = np.arange(-1.0, 10.0, 0.1)
 
     # 根据x.w + b = 0 得到，其式子展开为w0.x1 + w1.x2 + b = 0, x2就是y值
-    y = (-b-ws[0, 0]*x)/ws[1, 0]
+    y = (-b - ws[0, 0] * x) / ws[1, 0]
     ax.plot(x, y)
 
-    for i in range(shape(yMat[0, :])[1]):
+    for i in range(np.shape(yMat[0, :])[1]):
         if yMat[0, i] > 0:
             ax.plot(xMat[i, 0], xMat[i, 1], 'cx')
         else:
@@ -245,7 +255,7 @@ if __name__ == "__main__":
     print('/n/n/n')
     print('b=', b)
     print('alphas[alphas>0]=', alphas[alphas > 0])
-    print('shape(alphas[alphas > 0])=', shape(alphas[alphas > 0]))
+    print('shape(alphas[alphas > 0])=', np.shape(alphas[alphas > 0]))
     for i in range(100):
         if alphas[i] > 0:
             print(dataArr[i], labelArr[i])
