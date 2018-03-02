@@ -48,8 +48,8 @@ def clipAlpha(aj, H, L):
     Returns:
         aj  目标值
     """
-    aj = H if aj > H else aj
-    aj = L if aj < L else aj
+    aj = min(aj, H)
+    aj = max(L, aj)
     return aj
 
 
