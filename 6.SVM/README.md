@@ -1,5 +1,6 @@
 ## svm-complete.py
 
+### smoP
 
 ```python
 def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
@@ -20,4 +21,19 @@ def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
                 alphaPairsChanged += innerL(i, oS)
                 # print("non-bound, iter: %d i:%d, pairs changed %d" % (iter, i, alphaPairsChanged))
         iter += 1
+```
+
+
+### np.nonzero()
+
+返回数组（矩阵）中非零元素的位置
+
+```python
+>>>x = np.array([[1,0,0], [0,2,0], [1,1,0]])
+
+>>>np.nonzero(x)
+# 第一维表示横坐标，第二维表示纵坐标。
+# 比如第一个非零元素位置是(0,0),第二个是(1,1)，第三个是(2,0),第四个是(2,1)。
+# 取中其中横坐标组成第一维，纵坐标为第二维
+(array([0, 1, 2, 2]), array([0, 1, 0, 1]))
 ```
