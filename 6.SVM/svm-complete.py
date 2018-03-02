@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 # pylint: disable=E1101
 import numpy as np
+from numpy.random import randint
 import matplotlib.pyplot as plt
 import os
 
@@ -118,7 +119,7 @@ def selectJrand(i, m):
     """
     j = i
     while j == i:
-        j = np.random.randint(0, m - 1)
+        j = randint(0, m - 1)
     return j
 
 
