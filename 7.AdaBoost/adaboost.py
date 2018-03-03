@@ -1,12 +1,6 @@
 #!/usr/bin/python
 # coding:utf8
-"""
-Created on Nov 28, 2010
-Update  on 2017-05-18
-Adaboost is short for Adaptive Boosting
-@author: Peter/片刻/BBruceyuan
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-"""
+# pylint: disable=E1101
 import numpy as np
 
 
@@ -16,10 +10,7 @@ def load_sim_data():
     :return: data_arr   feature对应的数据集
             label_arr  feature对应的分类标签
     """
-    data_mat = np.matrix([[1.0, 2.1],
-                          [2.0, 1.1],
-                          [1.3, 1.0],
-                          [1.0, 1.0],
+    data_mat = np.matrix([[1.0, 2.1], [2.0, 1.1], [1.3, 1.0], [1.0, 1.0],
                           [2.0, 1.0]])
     class_labels = [1.0, 1.0, -1.0, -1.0, 1.0]
     return data_mat, class_labels
@@ -31,17 +22,15 @@ def load_data_set(file_name):
     :param file_name: 文件名
     :return: 必须要是np.array或者np.matrix不然后面没有，shape
     """
-    num_feat = len(open(file_name).readline().split('\t'))
-    data_arr = []
-    label_arr = []
-    fr = open(file_name)
-    for line in fr.readlines():
-        line_arr = []
-        cur_line = line.strip().split('\t')
-        for i in range(num_feat - 1):
-            line_arr.append(float(cur_line[i]))
-        data_arr.append(line_arr)
-        label_arr.append(float(cur_line[-1]))
+    with open(file_name, 'r') as fr:
+        num_feat = len(fr.readline().split('\t'))
+    data_arr, label_arr = [], []
+    with open(file_name, 'r') as fr:
+        for line in fr.readlines():
+            cur_line = line.strip().split('\t')
+            line_arr = [float(cur_line[i]) for i in range(num_feat - 1)]
+            data_arr.append(line_arr)
+            label_arr.append(float(cur_line[-1]))
     return np.matrix(data_arr), label_arr
 
 
@@ -91,7 +80,8 @@ def build_stump(data_arr, class_labels, D):
         for j in range(-1, int(num_steps) + 1):
             for inequal in ['lt', 'gt']:
                 thresh_val = (range_min + float(j) * step_size)
-                predicted_vals = stump_classify(data_mat, i, thresh_val, inequal)
+                predicted_vals = stump_classify(data_mat, i, thresh_val,
+                                                inequal)
                 err_arr = np.mat(np.ones((m, 1)))
                 err_arr[predicted_vals == label_mat] = 0
                 # 这里是矩阵乘法
@@ -103,9 +93,6 @@ def build_stump(data_arr, class_labels, D):
                 weighted_error  表示整体结果的错误率
                 best_class_est    预测的最优结果 （与class_labels对应）
                 '''
-                # print('split: dim {}, thresh {}, thresh inequal: {}, the weighted err is {}'.format(
-                #     i, thresh_val, inequal, weighted_err
-                # ))
                 if weighted_err < min_err:
                     min_err = weighted_err
                     best_class_est = predicted_vals.copy()
@@ -130,7 +117,7 @@ def ada_boost_train_ds(data_arr, class_labels, num_it=40):
     # 初始化 D，设置每个特征的权重值，平均分为m份
     D = np.mat(np.ones((m, 1)) / m)
     agg_class_est = np.mat(np.zeros((m, 1)))
-    for i in range(num_it):
+    for _ in range(num_it):
         # 得到决策树的模型
         best_stump, error, class_est = build_stump(data_arr, class_labels, D)
         # print('D: {}'.format(D.T))
@@ -157,8 +144,8 @@ def ada_boost_train_ds(data_arr, class_labels, num_it=40):
         # print('叠加后的分类结果agg_class_est: {}'.format(agg_class_est.T))
         # sign 判断正为1， 0为0， 负为-1，通过最终加和的权重值，判断符号。
         # 结果为：错误的样本标签集合，因为是 !=,那么结果就是0 正, 1 负
-        agg_errors = np.multiply(np.sign(agg_class_est) != np.mat(class_labels).T,
-                                 np.ones((m, 1)))
+        agg_errors = np.multiply(
+            np.sign(agg_class_est) != np.mat(class_labels).T, np.ones((m, 1)))
         error_rate = agg_errors.sum() / m
         # print('total error: {}\n'.format(error_rate))
         if error_rate == 0.0:
@@ -177,13 +164,11 @@ def ada_classify(data_to_class, classifier_arr):
     m = np.shape(data_mat)[0]
     agg_class_est = np.mat(np.zeros((m, 1)))
     for i in range(len(classifier_arr)):
-        class_est = stump_classify(
-            data_mat, classifier_arr[i]['dim'],
-            classifier_arr[i]['thresh'],
-            classifier_arr[i]['ineq']
-        )
+        class_est = stump_classify(data_mat, classifier_arr[i]['dim'],
+                                   classifier_arr[i]['thresh'],
+                                   classifier_arr[i]['ineq'])
         agg_class_est += classifier_arr[i]['alpha'] * class_est
-        print(agg_class_est)
+#        print(agg_class_est)
     return np.sign(agg_class_est)
 
 
@@ -253,20 +238,21 @@ def test():
     # print(result)
     # classifier_array, agg_class_est = ada_boost_train_ds(data_mat, class_labels, 9)
     # print(classifier_array, agg_class_est)
-    data_mat, class_labels = load_data_set('../../../input/7.AdaBoost/horseColicTraining2.txt')
+    data_mat, class_labels = load_data_set(
+        'Data/horseColicTraining2.txt')
     print(data_mat.shape, len(class_labels))
-    weak_class_arr, agg_class_est = ada_boost_train_ds(data_mat, class_labels, 40)
+    weak_class_arr, agg_class_est = ada_boost_train_ds(data_mat, class_labels,
+                                                       40)
     print(weak_class_arr, '\n-----\n', agg_class_est.T)
     plot_roc(agg_class_est, class_labels)
-    data_arr_test, label_arr_test = load_data_set("../../../input/7.AdaBoost/horseColicTest2.txt")
+    data_arr_test, label_arr_test = load_data_set(
+        "Data/horseColicTest2.txt")
     m = np.shape(data_arr_test)[0]
     predicting10 = ada_classify(data_arr_test, weak_class_arr)
     err_arr = np.mat(np.ones((m, 1)))
     # 测试：计算总样本数，错误样本数，错误率
-    print(m,
-          err_arr[predicting10 != np.mat(label_arr_test).T].sum(),
-          err_arr[predicting10 != np.mat(label_arr_test).T].sum() / m
-          )
+    print(m, err_arr[predicting10 != np.mat(label_arr_test).T].sum(),
+          err_arr[predicting10 != np.mat(label_arr_test).T].sum() / m)
 
 
 if __name__ == '__main__':
