@@ -1,19 +1,14 @@
 #!/usr/bin/python
 # coding:utf8
-'''
-Created on Jan 8, 2011
-Update  on 2017-05-18
-@author: Peter Harrington/小瑶
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-'''
 
-from numpy import *
+import numpy as np
+from numpy.random import shuffle
 import matplotlib.pylab as plt
 from time import sleep
 import bs4
 from bs4 import BeautifulSoup
 import json
-import urllib.request   # 在Python3中将urllib2和urllib3合并为一个标准库urllib,其中的urllib2.urlopen更改为urllib.request.urlopen
+import urllib.request  # 在Python3中将urllib2和urllib3合并为一个标准库urllib,其中的urllib2.urlopen更改为urllib.request.urlopen
 
 
 def loadDataSet(fileName):
@@ -56,13 +51,13 @@ def standRegres(xArr, yArr):
     '''
 
     # mat()函数将xArr，yArr转换为矩阵 mat().T 代表的是对矩阵进行转置操作
-    xMat = mat(xArr)
-    yMat = mat(yArr).T
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
     # 矩阵乘法的条件是左矩阵的列数等于右矩阵的行数
     xTx = xMat.T * xMat
     # 因为要用到xTx的逆矩阵，所以事先需要确定计算得到的xTx是否可逆，条件是矩阵的行列式不为0
     # linalg.det() 函数是用来求得矩阵的行列式的，如果矩阵的行列式为0，则这个矩阵是不可逆的，就无法进行接下来的运算
-    if linalg.det(xTx) == 0.0:
+    if np.linalg.det(xTx) == 0.0:
         print("This matrix is singular, cannot do inverse")
         return
     # 最小二乘法
@@ -91,21 +86,21 @@ def lwlr(testPoint, xArr, yArr, k=1.0):
             也就可以计算出每个样本贡献误差的权值，可以看出w是一个有m个元素的向量（写成对角阵形式）。
     '''
     # mat() 函数是将array转换为矩阵的函数， mat().T 是转换为矩阵之后，再进行转置操作
-    xMat = mat(xArr)
-    yMat = mat(yArr).T
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
     # 获得xMat矩阵的行数
-    m = shape(xMat)[0]
+    m = np.shape(xMat)[0]
     # eye()返回一个对角线元素为1，其他元素为0的二维数组，创建权重矩阵weights，该矩阵为每个样本点初始化了一个权重
-    weights = mat(eye((m)))
+    weights = np.mat(np.eye((m)))
     for j in range(m):
         # testPoint 的形式是 一个行向量的形式
         # 计算 testPoint 与输入样本点之间的距离，然后下面计算出每个样本贡献误差的权值
         diffMat = testPoint - xMat[j, :]
         # k控制衰减的速度
-        weights[j, j] = exp(diffMat * diffMat.T / (-2.0 * k ** 2))
+        weights[j, j] = np.exp(diffMat * diffMat.T / (-2.0 * k**2))
     # 根据矩阵乘法计算 xTx ，其中的 weights 矩阵是样本点对应的权重矩阵
     xTx = xMat.T * (weights * xMat)
-    if linalg.det(xTx) == 0.0:
+    if np.linalg.det(xTx) == 0.0:
         print("This matrix is singular, cannot do inverse")
         return
     # 计算出回归系数的一个估计
@@ -126,9 +121,9 @@ def lwlrTest(testArr, xArr, yArr, k=1.0):
             yHat：预测点的估计值
     '''
     # 得到样本点的总数
-    m = shape(testArr)[0]
+    m = np.shape(testArr)[0]
     # 构建一个全部都是 0 的 1 * m 的矩阵
-    yHat = zeros(m)
+    yHat = np.zeros(m)
     # 循环所有的数据点，并将lwlr运用于所有的数据点
     for i in range(m):
         yHat[i] = lwlr(testArr[i], xArr, yArr, k)
@@ -149,13 +144,13 @@ def lwlrTestPlot(xArr, yArr, k=1.0):
             xCopy：xArr的复制
     '''
     # 生成一个与目标变量数目相同的 0 向量
-    yHat = zeros(shape(yArr))
+    yHat = np.zeros(np.shape(yArr))
     # 将 xArr 转换为 矩阵形式
-    xCopy = mat(xArr)
+    xCopy = np.mat(xArr)
     # 排序
     xCopy.sort(0)
     # 开始循环，为每个样本点进行局部加权线性回归，得到最终的目标变量估计值
-    for i in range(shape(xArr)[0]):
+    for i in range(np.shape(xArr)[0]):
         yHat[i] = lwlr(xCopy[i], xArr, yArr, k)
     return yHat, xCopy
 
@@ -170,7 +165,7 @@ def rssError(yArr, yHatArr):
         Returns:
             计算真实值和估计值得到的值的平方和作为最后的返回值
     '''
-    return ((yArr - yHatArr) ** 2).sum()
+    return ((yArr - yHatArr)**2).sum()
 
 
 def ridgeRegres(xMat, yMat, lam=0.2):
@@ -190,9 +185,9 @@ def ridgeRegres(xMat, yMat, lam=0.2):
 
     xTx = xMat.T * xMat
     # 岭回归就是在矩阵 xTx 上加一个 λI 从而使得矩阵非奇异，进而能对 xTx + λI 求逆
-    denom = xTx + eye(shape(xMat)[1]) * lam
+    denom = xTx + np.eye(np.shape(xMat)[1]) * lam
     # 检查行列式是否为零，即矩阵是否可逆，行列式为0的话就不可逆，不为0的话就是可逆。
-    if linalg.det(denom) == 0.0:
+    if np.linalg.det(denom) == 0.0:
         print("This matrix is singular, cannot do inverse")
         return
     ws = denom.I * (xMat.T * yMat)
@@ -210,51 +205,51 @@ def ridgeTest(xArr, yArr):
             wMat：将所有的回归系数输出到一个矩阵并返回
     '''
 
-    xMat = mat(xArr)
-    yMat = mat(yArr).T
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
     # 计算Y的均值
-    yMean = mean(yMat, 0)
+    yMean = np.mean(yMat, 0)
     # Y的所有的特征减去均值
     yMat = yMat - yMean
     # 标准化 x，计算 xMat 平均值
-    xMeans = mean(xMat, 0)
+    xMeans = np.mean(xMat, 0)
     # 然后计算 X的方差
-    xVar = var(xMat, 0)
+    xVar = np.var(xMat, 0)
     # 所有特征都减去各自的均值并除以方差
     xMat = (xMat - xMeans) / xVar
     # 可以在 30 个不同的 lambda 下调用 ridgeRegres() 函数。
     numTestPts = 30
     # 创建30 * m 的全部数据为0 的矩阵
-    wMat = zeros((numTestPts, shape(xMat)[1]))
+    wMat = np.zeros((numTestPts, np.shape(xMat)[1]))
     for i in range(numTestPts):
         # exp() 返回 e^x
-        ws = ridgeRegres(xMat, yMat, exp(i - 10))
+        ws = ridgeRegres(xMat, yMat, np.exp(i - 10))
         wMat[i, :] = ws.T
     return wMat
 
 
 def regularize(xMat):  # 按列进行规范化
     inMat = xMat.copy()
-    inMeans = mean(inMat, 0)  # 计算平均值然后减去它
-    inVar = var(inMat, 0)  # 计算除以Xi的方差
+    inMeans = np.mean(inMat, 0)  # 计算平均值然后减去它
+    inVar = np.var(inMat, 0)  # 计算除以Xi的方差
     inMat = (inMat - inMeans) / inVar
     return inMat
 
 
 def stageWise(xArr, yArr, eps=0.01, numIt=100):
-    xMat = mat(xArr)
-    yMat = mat(yArr).T
-    yMean = mean(yMat, 0)
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
+    yMean = np.mean(yMat, 0)
     yMat = yMat - yMean  # 也可以规则化ys但会得到更小的coef
     xMat = regularize(xMat)
-    m, n = shape(xMat)
-    returnMat = zeros((numIt, n))  # 测试代码删除
-    ws = zeros((n, 1))
+    _, n = np.shape(xMat)
+    returnMat = np.zeros((numIt, n))  # 测试代码删除
+    ws = np.zeros((n, 1))
     wsTest = ws.copy()
     wsMax = ws.copy()
     for i in range(numIt):
         print(ws.T)
-        lowestError = inf
+        lowestError = np.inf
         for j in range(n):
             for sign in [-1, 1]:
                 wsTest = ws.copy()
@@ -298,7 +293,6 @@ def stageWise(xArr, yArr, eps=0.01, numIt=100):
 #         currentRow = soup.findAll('table', r="%d" % i)
 #     fw.close()
 
-
 # --------------------------------------------------------------
 # 预测乐高玩具套装的价格 ------ 最初的版本，因为现在 google 的 api 变化，无法获取数据
 # 故改为了下边的样子，但是需要安装一个 beautifulSoup 这个第三方网页文本解析器，安装很简单，见下边
@@ -307,26 +301,32 @@ def stageWise(xArr, yArr, eps=0.01, numIt=100):
 # 这里特别指出 正确的使用方法为下面的语句使用,from urllib import request 将会报错,具体细节查看官方文档
 # import urllib.request   # 在Python3中将urllib2和urllib等五个模块合并为一个标准库urllib,其中的urllib2.urlopen更改为urllib.request.urlopen
 
+
 def searchForSet(retX, retY, setNum, yr, numPce, origPrc):
     sleep(10)
     myAPIstr = 'AIzaSyD2cR2KFyx12hXu6PFU-wrWot3NXvko8vY'
-    searchURL = 'https://www.googleapis.com/shopping/search/v1/public/products?key=%s&country=US&q=lego+%d&alt=json' % (myAPIstr, setNum)
+    searchURL = 'https://www.googleapis.com/shopping/search/v1/public/products?key=%s&country=US&q=lego+%d&alt=json' % (
+        myAPIstr, setNum)
     pg = urllib.request.urlopen(searchURL)
-    retDict = json.loads(pg.read())    # 转换为json格式
+    retDict = json.loads(pg.read())  # 转换为json格式
     for i in range(len(retDict['items'])):
         try:
             currItem = retDict['items'][i]
             if currItem['product']['condition'] == 'new':
                 newFlag = 1
-            else: newFlag = 0
+            else:
+                newFlag = 0
             listOfInv = currItem['product']['inventories']
             for item in listOfInv:
                 sellingPrice = item['price']
-                if  sellingPrice > origPrc * 0.5:
-                    print ("%d\t%d\t%d\t%f\t%f" % (yr,numPce,newFlag,origPrc, sellingPrice))
+                if sellingPrice > origPrc * 0.5:
+                    print("%d\t%d\t%d\t%f\t%f" % (yr, numPce, newFlag, origPrc,
+                                                  sellingPrice))
                     retX.append([yr, numPce, newFlag, origPrc])
                     retY.append(sellingPrice)
-        except: print ('problem with item %d' % i)
+        except:
+            print('problem with item %d' % i)
+
 
 def setDataCollect(retX, retY):
     searchForSet(retX, retY, 8288, 2006, 800, 49.99)
@@ -336,42 +336,58 @@ def setDataCollect(retX, retY):
     searchForSet(retX, retY, 10189, 2008, 5922, 299.99)
     searchForSet(retX, retY, 10196, 2009, 3263, 249.99)
 
-def crossValidation(xArr,yArr,numVal=10):
-    m = len(yArr)                           
+
+def crossValidation(xArr, yArr, numVal=10):
+    m = len(yArr)
     indexList = range(m)
-    errorMat = zeros((numVal,30))#create error mat 30columns numVal rows创建error mat 30columns numVal 行
+    errorMat = np.zeros(
+        (numVal, 30)
+    )  #create error mat 30columns numVal rows创建error mat 30columns numVal 行
     for i in range(numVal):
-        trainX=[]; trainY=[]
-        testX = []; testY = []
-        random.shuffle(indexList)
-        for j in range(m):#create training set based on first 90% of values in indexList
-                          #基于indexList中的前90%的值创建训练集
-            if j < m*0.9: 
+        trainX = []
+        trainY = []
+        testX = []
+        testY = []
+        shuffle(indexList)
+        for j in range(
+                m
+        ):  #create training set based on first 90% of values in indexList
+            #基于indexList中的前90%的值创建训练集
+            if j < m * 0.9:
                 trainX.append(xArr[indexList[j]])
                 trainY.append(yArr[indexList[j]])
             else:
                 testX.append(xArr[indexList[j]])
                 testY.append(yArr[indexList[j]])
-        wMat = ridgeTest(trainX,trainY)    #get 30 weight vectors from ridge
-        for k in range(30):#loop over all of the ridge estimates
-            matTestX = mat(testX); matTrainX=mat(trainX)
-            meanTrain = mean(matTrainX,0)
-            varTrain = var(matTrainX,0)
-            matTestX = (matTestX-meanTrain)/varTrain #regularize test with training params
-            yEst = matTestX * mat(wMat[k,:]).T + mean(trainY)#test ridge results and store
-            errorMat[i,k]=rssError(yEst.T.A,array(testY))
+        wMat = ridgeTest(trainX, trainY)  #get 30 weight vectors from ridge
+        for k in range(30):  #loop over all of the ridge estimates
+            matTestX = np.mat(testX)
+            matTrainX = np.mat(trainX)
+            meanTrain = np.mean(matTrainX, 0)
+            varTrain = np.var(matTrainX, 0)
+            matTestX = (matTestX - meanTrain
+                        ) / varTrain  #regularize test with training params
+            yEst = matTestX * np.mat(wMat[k, :]).T + np.mean(
+                trainY)  #test ridge results and store
+            errorMat[i, k] = rssError(yEst.T.A, np.array(testY))
             #print (errorMat[i,k])
-    meanErrors = mean(errorMat,0)#calc avg performance of the different ridge weight vectors
+    meanErrors = np.mean(
+        errorMat,
+        0)  #calc avg performance of the different ridge weight vectors
     minMean = float(min(meanErrors))
-    bestWeights = wMat[nonzero(meanErrors==minMean)]
+    bestWeights = wMat[np.nonzero(meanErrors == minMean)]
     #can unregularize to get model
     #when we regularized we wrote Xreg = (x-meanX)/var(x)
     #we can now write in terms of x not Xreg:  x*w/var(x) - meanX/var(x) +meanY
-    xMat = mat(xArr); yMat=mat(yArr).T
-    meanX = mean(xMat,0); varX = var(xMat,0)
-    unReg = bestWeights/varX
-    print ("the best model from Ridge Regression is:\n",unReg)
-    print ("with constant term: ",-1*sum(multiply(meanX,unReg)) + mean(yMat))
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
+    meanX = np.mean(xMat, 0)
+    varX = np.var(xMat, 0)
+    unReg = bestWeights / varX
+    print("the best model from Ridge Regression is:\n", unReg)
+    print("with constant term: ",
+          -1 * sum(np.multiply(meanX, unReg)) + np.mean(yMat))
+
 
 # ----------------------------------------------------------------------------
 # 预测乐高玩具套装的价格 可运行版本，我们把乐高数据存储到了我们的 input 文件夹下，使用 urllib爬取,bs4解析内容
@@ -387,12 +403,12 @@ def crossValidation(xArr,yArr,numVal=10):
 # 从页面读取数据，生成retX和retY列表
 def scrapePage(retX, retY, inFile, yr, numPce, origPrc):
     # 打开并读取HTML文件
-    fr = open(inFile)    # 这里推荐使用with open() 生成器,这样节省内存也可以避免最后忘记关闭文件的问题
+    fr = open(inFile)  # 这里推荐使用with open() 生成器,这样节省内存也可以避免最后忘记关闭文件的问题
     soup = BeautifulSoup(fr.read())
-    i=1
+    i = 1
     # 根据HTML页面结构进行解析
     currentRow = soup.findAll('table', r="%d" % i)
-    while(len(currentRow)!=0):
+    while (len(currentRow) != 0):
         currentRow = soup.findAll('table', r="%d" % i)
         title = currentRow[0].findAll('a')[1].text
         lwrTitle = title.lower()
@@ -403,24 +419,26 @@ def scrapePage(retX, retY, inFile, yr, numPce, origPrc):
             newFlag = 0.0
         # 查找是否已经标志出售，我们只收集已出售的数据
         soldUnicde = currentRow[0].findAll('td')[3].findAll('span')
-        if len(soldUnicde)==0:
-            print ("item #%d did not sell" % i)
+        if len(soldUnicde) == 0:
+            print("item #%d did not sell" % i)
         else:
             # 解析页面获取当前价格
             soldPrice = currentRow[0].findAll('td')[4]
             priceStr = soldPrice.text
-            priceStr = priceStr.replace('$','') #strips out $
-            priceStr = priceStr.replace(',','') #strips out ,
-            if len(soldPrice)>1:
+            priceStr = priceStr.replace('$', '')  #strips out $
+            priceStr = priceStr.replace(',', '')  #strips out ,
+            if len(soldPrice) > 1:
                 priceStr = priceStr.replace('Free shipping', '')
             sellingPrice = float(priceStr)
             # 去掉不完整的套装价格
-            if  sellingPrice > origPrc * 0.5:
-                    print ("%d\t%d\t%d\t%f\t%f" % (yr,numPce,newFlag,origPrc, sellingPrice))
-                    retX.append([yr, numPce, newFlag, origPrc])
-                    retY.append(sellingPrice)
+            if sellingPrice > origPrc * 0.5:
+                print("%d\t%d\t%d\t%f\t%f" % (yr, numPce, newFlag, origPrc,
+                                              sellingPrice))
+                retX.append([yr, numPce, newFlag, origPrc])
+                retY.append(sellingPrice)
         i += 1
         currentRow = soup.findAll('table', r="%d" % i)
+
 
 '''
 # 依次读取六种乐高套装的数据，并生成数据矩阵        
@@ -480,15 +498,19 @@ def crossValidation(xArr,yArr,numVal=10):
 
 '''
 
+
 # test for standRegression
 def regression1():
     xArr, yArr = loadDataSet("input/8.Regression/data.txt")
-    xMat = mat(xArr)
-    yMat = mat(yArr)
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr)
     ws = standRegres(xArr, yArr)
     fig = plt.figure()
-    ax = fig.add_subplot(111)  # add_subplot(349)函数的参数的意思是，将画布分成3行4列图像画在从左到右从上到下第9块
-    ax.scatter([xMat[:, 1].flatten()], [yMat.T[:, 0].flatten().A[0]])  # scatter 的x是xMat中的第二列，y是yMat的第一列
+    ax = fig.add_subplot(
+        111)  # add_subplot(349)函数的参数的意思是，将画布分成3行4列图像画在从左到右从上到下第9块
+    ax.scatter(
+        [xMat[:, 1].flatten()],
+        [yMat.T[:, 0].flatten().A[0]])  # scatter 的x是xMat中的第二列，y是yMat的第一列
     xCopy = xMat.copy()
     xCopy.sort(0)
     yHat = xCopy * ws
@@ -499,13 +521,17 @@ def regression1():
 def regression2():
     xArr, yArr = loadDataSet("input/8.Regression/data.txt")
     yHat = lwlrTest(xArr, xArr, yArr, 0.003)
-    xMat = mat(xArr)
-    srtInd = xMat[:, 1].argsort(0)  # argsort()函数是将x中的元素从小到大排列，提取其对应的index(索引)，然后输出
+    xMat = np.mat(xArr)
+    srtInd = xMat[:, 1].argsort(
+        0)  # argsort()函数是将x中的元素从小到大排列，提取其对应的index(索引)，然后输出
     xSort = xMat[srtInd][:, 0, :]
     fig = plt.figure()
     ax = fig.add_subplot(111)
     ax.plot(xSort[:, 1], yHat[srtInd])
-    ax.scatter([xMat[:, 1].flatten().A[0]], [mat(yArr).T.flatten().A[0]], s=2, c='red')
+    ax.scatter(
+        [xMat[:, 1].flatten().A[0]], [np.mat(yArr).T.flatten().A[0]],
+        s=2,
+        c='red')
     plt.show()
 
 
@@ -540,7 +566,7 @@ def abaloneTest():
 
     # 使用简单的 线性回归 进行预测，与上面的计算进行比较
     standWs = standRegres(abX[0:99], abY[0:99])
-    standyHat = mat(abX[100:199]) * standWs
+    standyHat = np.mat(abX[100:199]) * standWs
     print("standRegress error Size is:", rssError(abY[100:199], standyHat.T.A))
 
 
@@ -558,10 +584,10 @@ def regression3():
 def regression4():
     xArr, yArr = loadDataSet("input/8.Regression/abalone.txt")
     stageWise(xArr, yArr, 0.01, 200)
-    xMat = mat(xArr)
-    yMat = mat(yArr).T
+    xMat = np.mat(xArr)
+    yMat = np.mat(yArr).T
     xMat = regularize(xMat)
-    yM = mean(yMat, 0)
+    yM = np.mean(yMat, 0)
     yMat = yMat - yM
     weights = standRegres(xMat, yMat.T)
     print(weights.T)
@@ -582,3 +608,4 @@ if __name__ == '__main__':
     # regression3()
     # regression4()
     # regression5()
+    pass

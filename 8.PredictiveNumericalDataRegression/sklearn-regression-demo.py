@@ -1,16 +1,7 @@
 #!/usr/bin/python
 # coding:utf8
-
-'''
-Created on Jan 8, 2011
-Update  on 2017-05-18
-@author: Peter Harrington/小瑶
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-'''
-
-
+# pylint: disable=E1101
 # Isotonic Regression 等式回归
-print(__doc__)
 
 # Author: Nelle Varoquaux <nelle.varoquaux@gmail.com>
 #         Alexandre Gramfort <alexandre.gramfort@inria.fr>
@@ -27,7 +18,7 @@ from sklearn.utils import check_random_state
 n = 100
 x = np.arange(n)
 rs = check_random_state(0)
-y = rs.randint(-50, 50, size=(n,)) + 50. * np.log(1 + np.arange(n))
+y = rs.randint(-50, 50, size=(n, )) + 50. * np.log(1 + np.arange(n))
 
 ir = IsotonicRegression()
 
@@ -56,7 +47,6 @@ plt.show()
 
 # Authors: Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
 # License: BSD 3 clause
-
 '''
 from __future__ import division
 import time
