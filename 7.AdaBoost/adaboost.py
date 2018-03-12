@@ -118,16 +118,13 @@ def ada_boost_train_ds(data_arr, class_labels, num_it=40):
     D = np.mat(np.ones((m, 1)) / m)
     agg_class_est = np.mat(np.zeros((m, 1)))
     for _ in range(num_it):
-        # 得到决策树的模型
+        # 得到决策树的模型、错误率、分类结果
         best_stump, error, class_est = build_stump(data_arr, class_labels, D)
-        # print('D: {}'.format(D.T))
-        # alpha 目的主要是计算每一个分类器实例的权重(加和就是分类结果)
-        # 计算每个分类器的 alpha 权重值
+        # 计算每个分类器的 alpha 权重值，alpha 目的主要是计算每一个分类器实例的权重(加和就是分类结果)
         alpha = float(0.5 * np.log((1.0 - error) / max(error, 1e-16)))
         best_stump['alpha'] = alpha
-        # store Stump Params in Array
+        # 保存每个分类器的模型
         weak_class_arr.append(best_stump)
-        # print('class_est: {}'.format(class_est.T))
         # 分类正确：乘积为1，不会影响结果，-1主要是下面求e的-alpha次方
         # 分类错误：乘积为 -1，结果会受影响，所以也乘以 -1
         expon = np.multiply(-1 * alpha * np.mat(class_labels).T, class_est)
@@ -139,15 +136,12 @@ def ada_boost_train_ds(data_arr, class_labels, num_it=40):
         D = np.multiply(D, np.exp(expon))
         D = D / D.sum()
         # 预测的分类结果值，在上一轮结果的基础上，进行加和操作
-        # print('叠加前的分类结果class_est: {}'.format(class_est.T))
         agg_class_est += alpha * class_est
-        # print('叠加后的分类结果agg_class_est: {}'.format(agg_class_est.T))
         # sign 判断正为1， 0为0， 负为-1，通过最终加和的权重值，判断符号。
-        # 结果为：错误的样本标签集合，因为是 !=,那么结果就是0 正, 1 负
+        # 结果为：错误的样本标签集合，因为是 !=,那么结果就是0 正确, 1 错误
         agg_errors = np.multiply(
             np.sign(agg_class_est) != np.mat(class_labels).T, np.ones((m, 1)))
         error_rate = agg_errors.sum() / m
-        # print('total error: {}\n'.format(error_rate))
         if error_rate == 0.0:
             break
     return weak_class_arr, agg_class_est
@@ -168,7 +162,7 @@ def ada_classify(data_to_class, classifier_arr):
                                    classifier_arr[i]['thresh'],
                                    classifier_arr[i]['ineq'])
         agg_class_est += classifier_arr[i]['alpha'] * class_est
-#        print(agg_class_est)
+
     return np.sign(agg_class_est)
 
 
@@ -199,7 +193,7 @@ def plot_roc(pred_strengths, class_labels):
     ax = plt.subplot(111)
     # cursor光标值
     cur = (1.0, 1.0)
-    # loop through all the values, drawing a line segment at each point
+    # 循环每个值，根据每个点画一条线
     for index in sorted_indicies.tolist()[0]:
         if class_labels[index] == 1.0:
             del_x = 0
@@ -238,15 +232,13 @@ def test():
     # print(result)
     # classifier_array, agg_class_est = ada_boost_train_ds(data_mat, class_labels, 9)
     # print(classifier_array, agg_class_est)
-    data_mat, class_labels = load_data_set(
-        'Data/horseColicTraining2.txt')
+    data_mat, class_labels = load_data_set('Data/horseColicTraining2.txt')
     print(data_mat.shape, len(class_labels))
     weak_class_arr, agg_class_est = ada_boost_train_ds(data_mat, class_labels,
                                                        40)
     print(weak_class_arr, '\n-----\n', agg_class_est.T)
     plot_roc(agg_class_est, class_labels)
-    data_arr_test, label_arr_test = load_data_set(
-        "Data/horseColicTest2.txt")
+    data_arr_test, label_arr_test = load_data_set("Data/horseColicTest2.txt")
     m = np.shape(data_arr_test)[0]
     predicting10 = ada_classify(data_arr_test, weak_class_arr)
     err_arr = np.mat(np.ones((m, 1)))
