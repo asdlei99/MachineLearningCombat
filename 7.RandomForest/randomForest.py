@@ -9,19 +9,13 @@ def loadDataSet(filename):
     dataset = []
     with open(filename, 'r') as fr:
         for line in fr.readlines():
-            if not line:
-                continue
-            lineArr = []
-            for featrue in line.split(','):
-                # strip()返回移除字符串头尾指定的字符生成的新字符串
-                str_f = featrue.strip()
-                if str_f.isdigit():  # 判断是否是数字
-                    # 将数据集的第column列转换成float形式
-                    lineArr.append(float(str_f))
-                else:
-                    # 添加分类标签
-                    lineArr.append(str_f)
-            dataset.append(lineArr)
+            if line:
+                feature_lst = line.split(',')
+                # 每行最后一个元素为特征(字母)， 之前所有元素为数字，将其转换为浮点型
+                lineArr = [
+                    float(feature.strip()) for feature in feature_lst[:-1]
+                ] + [feature_lst[-1].strip()]
+                dataset.append(lineArr)
     return dataset
 
 
@@ -35,16 +29,15 @@ def cross_validation_split(dataset, n_folds):
         dataset_split    list集合，存放的是：将数据集进行抽重抽样 n_folds 份，数据可以重复重复抽取，每一次list的元素是无重复的
     """
     dataset_split = list()
-    dataset_copy = list(dataset)  # 复制一份 dataset,防止 dataset 的内容改变
+    # 复制一份 dataset,防止 dataset 的内容改变
+    dataset_copy = list(dataset).copy()
     fold_size = len(dataset) / n_folds
     for _ in range(n_folds):
         fold = list()  # 每次循环 fold 清零，防止重复导入 dataset_split
-        while len(fold
-                  ) < fold_size:  # 这里不能用 if，if 只是在第一次判断时起作用，while 执行循环，直到条件不成立
+        while len(fold) < fold_size:
             # 有放回的随机采样，有一些样本被重复采样，从而在训练集中多次出现，有的则从未在训练集中出现，此则自助采样法。从而保证每棵决策树训练集的差异性
             index = randrange(len(dataset_copy))
             # 将对应索引 index 的内容从 dataset_copy 中导出，并将该内容从 dataset_copy 中删除。
-            # pop() 函数用于移除列表中的一个元素（默认最后一个元素），并且返回该元素的值。
             # fold.append(dataset_copy.pop(index))  # 无放回的方式
             fold.append(dataset_copy[index])  # 有放回的方式
         dataset_split.append(fold)
@@ -52,7 +45,7 @@ def cross_validation_split(dataset, n_folds):
     return dataset_split
 
 
-# Split a dataset based on an attribute and an attribute value # 根据特征和特征值分割数据集
+# 根据特征和特征值分割数据集
 def test_split(index, value, dataset):
     left, right = list(), list()
     for row in dataset:
@@ -71,70 +64,70 @@ def gini_index(groups, class_values):  # 个人理解：计算代价，分类越
             size = len(group)
             if size == 0:
                 continue
-            proportion = [row[-1]
-                          for row in group].count(class_value) / float(size)
-            gini += (proportion *
-                     (1.0 - proportion))  # 个人理解：计算代价，分类越准确，则 gini 越小
+            # 取出分类结果，计算分类正确数
+            proportion_lst = [row[-1] for row in group]
+            proportion = proportion_lst.count(class_value) / float(size)
+            # 个人理解：计算代价，分类越准确，则 gini 越小
+            gini += (proportion * (1.0 - proportion))
     return gini
 
 
 # 找出分割数据集的最优特征，得到最优的特征 index，特征值 row[index]，以及分割完的数据 groups（left, right）
 def get_split(dataset, n_features):
-    class_values = list(set(
-        row[-1] for row in dataset))  # class_values =[0, 1]
+    # class_values = [0, 1]
+    class_values = list(set(row[-1] for row in dataset))
     b_index, b_value, b_score, b_groups = 999, 999, 999, None
     features = list()
     while len(features) < n_features:
-        index = randrange(
-            len(dataset[0]) - 1
-        )  # 往 features 添加 n_features 个特征（ n_feature 等于特征数的根号），特征索引从 dataset 中随机取
+        # 往 features 添加 n_features 个特征（ n_feature 等于特征数的根号），特征索引从 dataset 中随机取
+        index = randrange(len(dataset[0]) - 1)
         if index not in features:
             features.append(index)
     for index in features:  # 在 n_features 个特征中选出最优的特征索引，并没有遍历所有特征，从而保证了每课决策树的差异性
         for row in dataset:
-            groups = test_split(
-                index, row[index], dataset
-            )  # groups=(left, right), row[index] 遍历每一行 index 索引下的特征值作为分类值 value, 找出最优的分类特征和特征值
+            # groups=(left, right), row[index] 遍历每一行 index 索引下的特征值作为分类值 value, 找出最优的分类特征和特征值
+            groups = test_split(index, row[index], dataset)
             gini = gini_index(groups, class_values)
             # 左右两边的数量越一样，说明数据区分度不高，gini系数越大
             if gini < b_score:
+                # 最后得到最优的分类特征 b_index,分类特征值 b_value,分类结果 b_groups。b_value 为分错的代价成本
                 b_index, b_value, b_score, b_groups = index, row[
-                    index], gini, groups  # 最后得到最优的分类特征 b_index,分类特征值 b_value,分类结果 b_groups。b_value 为分错的代价成本
-    # print b_score
+                    index], gini, groups
+
     return {'index': b_index, 'value': b_value, 'groups': b_groups}
 
 
-# Create a terminal node value # 输出group中出现次数较多的标签
+# 输出group中出现次数较多的标签
 def to_terminal(group):
-    outcomes = [row[-1]
-                for row in group]  # max() 函数中，当 key 参数不为空时，就以 key 的函数对象为判断的标准
-    return max(set(outcomes), key=outcomes.count)  # 输出 group 中出现次数较多的标签
+    outcomes = [row[-1] for row in group]
+    # 输出 group 中出现次数较多的标签
+    return max(set(outcomes), key=outcomes.count)
 
 
-# Create child splits for a node or make terminal  # 创建子分割器，递归分类，直到分类结束
-def split(
-        node, max_depth, min_size, n_features, depth
-):  # max_depth = 10, min_size = 1, n_features = int(sqrt((dataset[0])-1))
+# 创建子分割器，递归分类，直到分类结束
+def split(node, max_depth, min_size, n_features, depth):
+    # max_depth = 10, min_size = 1, n_features = int(sqrt((dataset[0])-1))
     left, right = node['groups']
-    del (node['groups'])
-    # check for a no split
+    del node['groups']
+    # 是否有分支
     if not left or not right:
         node['left'] = node['right'] = to_terminal(left + right)
         return
-# check for max depth
-    if depth >= max_depth:  # max_depth=10 表示递归十次，若分类还未结束，则选取数据中分类标签较多的作为结果，使分类提前结束，防止过拟合
+    # 是否递归次数达到最大递归次数。max_depth=10 表示递归十次，若分类还未结束，则选取数据中分类标签较多的作为结果，使分类提前结束，防止过拟合
+    if depth >= max_depth:
         node['left'], node['right'] = to_terminal(left), to_terminal(right)
         return
-# process left child
+
+    # 处理左孩子
     if len(left) <= min_size:
         node['left'] = to_terminal(left)
     else:
-        node['left'] = get_split(
-            left, n_features
-        )  # node['left']是一个字典，形式为{'index':b_index, 'value':b_value, 'groups':b_groups}，所以node是一个多层字典
-        split(node['left'], max_depth, min_size, n_features,
-              depth + 1)  # 递归，depth+1计算递归层数
-# process right child
+        # node['left']是一个字典，形式为{'index':b_index, 'value':b_value, 'groups':b_groups}，node是一个多层字典
+        node['left'] = get_split(left, n_features)
+        # 递归，depth+1计算递归层数
+        split(node['left'], max_depth, min_size, n_features, depth + 1)
+
+    # 处理右孩子
     if len(right) <= min_size:
         node['right'] = to_terminal(right)
     else:
@@ -142,7 +135,7 @@ def split(
         split(node['right'], max_depth, min_size, n_features, depth + 1)
 
 
-# Build a decision tree
+# 构造决策树
 def build_tree(train, max_depth, min_size, n_features):
     """build_tree(创建一个决策树)
 
@@ -164,12 +157,11 @@ def build_tree(train, max_depth, min_size, n_features):
     return root
 
 
-# Make a prediction with a decision tree
-def predict(node, row):  # 预测模型分类结果
+# 用决策树进行预测
+def predict(node, row):
     if row[node['index']] < node['value']:
-        if isinstance(
-                node['left'],
-                dict):  # isinstance 是 Python 中的一个内建函数。是用来判断一个对象是否是一个已知的类型。
+        # isinstance 是 Python 中的一个内建函数。是用来判断一个对象是否是一个已知的类型。
+        if isinstance(node['left'], dict):
             return predict(node['left'], row)
         else:
             return node['left']
@@ -196,8 +188,8 @@ def bagging_predict(trees, row):
     return max(set(predictions), key=predictions.count)
 
 
-# Create a random subsample from the dataset with replacement
-def subsample(dataset, ratio):  # 创建数据集的随机子样本
+# 创建数据集的随机子样本
+def subsample(dataset, ratio):
     """random_forest(评估算法性能，返回模型得分)
 
     Args:
@@ -218,7 +210,7 @@ def subsample(dataset, ratio):  # 创建数据集的随机子样本
     return sample
 
 
-# Random Forest Algorithm
+# 随机森林算法
 def random_forest(train, test, max_depth, min_size, sample_size, n_trees,
                   n_features):
     """random_forest(评估算法性能，返回模型得分)
@@ -249,8 +241,8 @@ def random_forest(train, test, max_depth, min_size, sample_size, n_trees,
     return predictions
 
 
-# Calculate accuracy percentage
-def accuracy_metric(actual, predicted):  # 导入实际值和预测值，计算精确度
+# 导入实际值和预测值，计算精确度
+def accuracy_metric(actual, predicted):
     correct = 0
     for i in range(len(actual)):
         if actual[i] == predicted[i]:
@@ -313,7 +305,7 @@ if __name__ == '__main__':
     # print dataset
 
     n_folds = 5  # 分成5份数据，进行交叉验证
-    max_depth = 20  # 调参（自己修改） #决策树深度不能太深，不然容易导致过拟合
+    max_depth = 20  # 调参（自己修改）， 决策树深度不能太深，不然容易导致过拟合
     min_size = 1  # 决策树的叶子节点最少的元素数量
     sample_size = 1.0  # 做决策树时候的样本的比例
     # n_features = int((len(dataset[0])-1))
