@@ -6,9 +6,9 @@ from numpy.random import shuffle
 import matplotlib.pylab as plt
 from time import sleep
 import bs4
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs
 import json
-import urllib.request  # 在Python3中将urllib2和urllib3合并为一个标准库urllib,其中的urllib2.urlopen更改为urllib.request.urlopen
+import urllib.request
 
 
 def loadDataSet(fileName):
@@ -24,17 +24,12 @@ def loadDataSet(fileName):
     labelMat = []
     fr = open(fileName)
     for line in fr.readlines():
-        # 读取每一行
-        lineArr = []
         # 删除一行中以tab分隔的数据前后的空白符号
         curLine = line.strip().split('\t')
-        # i 从0到2，不包括2
-        for i in range(numFeat):
-            # 将数据添加到lineArr List中，每一行数据测试数据组成一个行向量
-            lineArr.append(float(curLine[i]))
-            # 将测试数据的输入数据部分存储到dataMat 的List中
+        # 将数据添加到lineArr List中，每一行数据测试数据组成一个行向量
+        lineArr = [float(curLine[i]) for i in range(numFeat - 1)]
+        # 将测试数据的输入数据部分(X)存储到dataMat, 类别(label)存储到labelMat
         dataMat.append(lineArr)
-        # 将每一行的最后一个数据，即类别，或者叫目标变量存储到labelMat List中
         labelMat.append(float(curLine[-1]))
     return dataMat, labelMat
 
@@ -50,7 +45,6 @@ def standRegres(xArr, yArr):
         ws：回归系数
     '''
 
-    # mat()函数将xArr，yArr转换为矩阵 mat().T 代表的是对矩阵进行转置操作
     xMat = np.mat(xArr)
     yMat = np.mat(yArr).T
     # 矩阵乘法的条件是左矩阵的列数等于右矩阵的行数
@@ -89,7 +83,7 @@ def lwlr(testPoint, xArr, yArr, k=1.0):
     xMat = np.mat(xArr)
     yMat = np.mat(yArr).T
     # 获得xMat矩阵的行数
-    m = np.shape(xMat)[0]
+    m, _ = np.shape(xMat)
     # eye()返回一个对角线元素为1，其他元素为0的二维数组，创建权重矩阵weights，该矩阵为每个样本点初始化了一个权重
     weights = np.mat(np.eye((m)))
     for j in range(m):
@@ -121,7 +115,7 @@ def lwlrTest(testArr, xArr, yArr, k=1.0):
             yHat：预测点的估计值
     '''
     # 得到样本点的总数
-    m = np.shape(testArr)[0]
+    m, _ = np.shape(testArr)
     # 构建一个全部都是 0 的 1 * m 的矩阵
     yHat = np.zeros(m)
     # 循环所有的数据点，并将lwlr运用于所有的数据点
@@ -208,15 +202,15 @@ def ridgeTest(xArr, yArr):
     xMat = np.mat(xArr)
     yMat = np.mat(yArr).T
     # 计算Y的均值
-    yMean = np.mean(yMat, 0)
+    # yMean = np.mean(yMat, 0)
     # Y的所有的特征减去均值
-    yMat = yMat - yMean
+    yMat = yMat - np.mean(yMat, axis=0)
     # 标准化 x，计算 xMat 平均值
-    xMeans = np.mean(xMat, 0)
+    # xMeans = np.mean(xMat, 0)
     # 然后计算 X的方差
-    xVar = np.var(xMat, 0)
+    # xVar = np.var(xMat, 0)
     # 所有特征都减去各自的均值并除以方差
-    xMat = (xMat - xMeans) / xVar
+    xMat = (xMat - np.mean(xMat, axis=0)) / np.var(xMat, axis=0)
     # 可以在 30 个不同的 lambda 下调用 ridgeRegres() 函数。
     numTestPts = 30
     # 创建30 * m 的全部数据为0 的矩阵
@@ -230,8 +224,8 @@ def ridgeTest(xArr, yArr):
 
 def regularize(xMat):  # 按列进行规范化
     inMat = xMat.copy()
-    inMeans = np.mean(inMat, 0)  # 计算平均值然后减去它
-    inVar = np.var(inMat, 0)  # 计算除以Xi的方差
+    inMeans = np.mean(inMat, axis=0)  # 计算平均值然后减去它
+    inVar = np.var(inMat, axis=0)  # 计算除以Xi的方差
     inMat = (inMat - inMeans) / inVar
     return inMat
 
@@ -239,11 +233,11 @@ def regularize(xMat):  # 按列进行规范化
 def stageWise(xArr, yArr, eps=0.01, numIt=100):
     xMat = np.mat(xArr)
     yMat = np.mat(yArr).T
-    yMean = np.mean(yMat, 0)
+    yMean = np.mean(yMat, axis=0)
     yMat = yMat - yMean  # 也可以规则化ys但会得到更小的coef
     xMat = regularize(xMat)
     _, n = np.shape(xMat)
-    returnMat = np.zeros((numIt, n))  # 测试代码删除
+    returnMat = np.zeros((numIt, n))
     ws = np.zeros((n, 1))
     wsTest = ws.copy()
     wsMax = ws.copy()
@@ -267,7 +261,7 @@ def stageWise(xArr, yArr, eps=0.01, numIt=100):
 # def scrapePage(inFile, outFile, yr, numPce, origPrc):
 #     fr = open(inFile)
 #     fw = open(outFile, 'a')  # a is append mode writing
-#     soup = BeautifulSoup(fr.read())
+#     soup = bs(fr.read())
 #     i = 1
 #     currentRow = soup.findAll('table', r="%d" % i)
 #     while (len(currentRow) != 0):
@@ -389,22 +383,12 @@ def crossValidation(xArr, yArr, numVal=10):
           -1 * sum(np.multiply(meanX, unReg)) + np.mean(yMat))
 
 
-# ----------------------------------------------------------------------------
 # 预测乐高玩具套装的价格 可运行版本，我们把乐高数据存储到了我们的 input 文件夹下，使用 urllib爬取,bs4解析内容
-# 前提：安装 BeautifulSoup，步骤如下
-# 在这个页面 https://www.crummy.com/software/BeautifulSoup/bs4/download/4.4/ 下载，beautifulsoup4-4.4.1.tar.gz
-# 将下载文件解压，使用 windows 版本的 cmd 命令行，进入解压的包，输入以下两行命令即可完成安装
-# python setup.py build
-# python setup.py install
-# 如果为linux或者mac系统可以直接使用pip进行安装 pip3 install bs4
-# ----------------------------------------------------------------------------
-
 
 # 从页面读取数据，生成retX和retY列表
 def scrapePage(retX, retY, inFile, yr, numPce, origPrc):
-    # 打开并读取HTML文件
-    fr = open(inFile)  # 这里推荐使用with open() 生成器,这样节省内存也可以避免最后忘记关闭文件的问题
-    soup = BeautifulSoup(fr.read())
+    with open(inFile) as fr:
+        soup = bs(fr.read())
     i = 1
     # 根据HTML页面结构进行解析
     currentRow = soup.findAll('table', r="%d" % i)
@@ -443,12 +427,12 @@ def scrapePage(retX, retY, inFile, yr, numPce, origPrc):
 '''
 # 依次读取六种乐高套装的数据，并生成数据矩阵        
 def setDataCollect(retX, retY):
-    scrapePage(retX, retY, 'input/8.Regression/setHtml/lego8288.html', 2006, 800, 49.99)
-    scrapePage(retX, retY, 'input/8.Regression/setHtml/lego10030.html', 2002, 3096, 269.99)
-    scrapePage(retX, retY, 'input/8.Regression/setHtml/lego10179.html', 2007, 5195, 499.99)
-    scrapePage(retX, retY, 'input/8.Regression/setHtml/lego10181.html', 2007, 3428, 199.99)
-    scrapePage(retX, retY, 'input/8.Regression/setHtml/lego10189.html', 2008, 5922, 299.99)
-    scrapePage(retX, retY, 'input/8.Regression/setHtml/lego10196.html', 2009, 3263, 249.99)
+    scrapePage(retX, retY, 'Data/setHtml/lego8288.html', 2006, 800, 49.99)
+    scrapePage(retX, retY, 'Data/setHtml/lego10030.html', 2002, 3096, 269.99)
+    scrapePage(retX, retY, 'Data/setHtml/lego10179.html', 2007, 5195, 499.99)
+    scrapePage(retX, retY, 'Data/setHtml/lego10181.html', 2007, 3428, 199.99)
+    scrapePage(retX, retY, 'Data/setHtml/lego10189.html', 2008, 5922, 299.99)
+    scrapePage(retX, retY, 'Data/setHtml/lego10196.html', 2009, 3263, 249.99)
 # 交叉验证测试岭回归
 def crossValidation(xArr,yArr,numVal=10):
     # 获得数据点个数，xArr和yArr具有相同长度
@@ -501,7 +485,7 @@ def crossValidation(xArr,yArr,numVal=10):
 
 # test for standRegression
 def regression1():
-    xArr, yArr = loadDataSet("input/8.Regression/data.txt")
+    xArr, yArr = loadDataSet("Data/data.txt")
     xMat = np.mat(xArr)
     yMat = np.mat(yArr)
     ws = standRegres(xArr, yArr)
@@ -519,7 +503,7 @@ def regression1():
 
 
 def regression2():
-    xArr, yArr = loadDataSet("input/8.Regression/data.txt")
+    xArr, yArr = loadDataSet("Data/data.txt")
     yHat = lwlrTest(xArr, xArr, yArr, 0.003)
     xMat = np.mat(xArr)
     srtInd = xMat[:, 1].argsort(
@@ -546,7 +530,7 @@ def abaloneTest():
         None
     '''
     # 加载数据
-    abX, abY = loadDataSet("input/8.Regression/abalone.txt")
+    abX, abY = loadDataSet("Data/abalone.txt")
     # 使用不同的核进行预测
     oldyHat01 = lwlrTest(abX[0:99], abX[0:99], abY[0:99], 0.1)
     oldyHat1 = lwlrTest(abX[0:99], abX[0:99], abY[0:99], 1)
@@ -572,7 +556,7 @@ def abaloneTest():
 
 # test for ridgeRegression
 def regression3():
-    abX, abY = loadDataSet("input/8.Regression/abalone.txt")
+    abX, abY = loadDataSet("Data/abalone.txt")
     ridgeWeights = ridgeTest(abX, abY)
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -582,7 +566,7 @@ def regression3():
 
 # test for stageWise
 def regression4():
-    xArr, yArr = loadDataSet("input/8.Regression/abalone.txt")
+    xArr, yArr = loadDataSet("Data/abalone.txt")
     stageWise(xArr, yArr, 0.01, 200)
     xMat = np.mat(xArr)
     yMat = np.mat(yArr).T
