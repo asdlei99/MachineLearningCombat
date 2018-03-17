@@ -2,6 +2,8 @@
 
 全部代码来自于[Machine Learning in Action（机器学习实战）](https://github.com/apachecn/MachineLearning/tree/python-3.6)
 
+[TOC]
+
 ### 1.TestNumpy
 
 测试numpy是否安装成功
@@ -83,3 +85,29 @@ array数组转换为矩阵
 #### sklearn_logisticRegression_demo.py
 
 调用`sklearn`的各种LR模型，实现逻辑回归
+
+### 6.SVM
+
+支持向量机
+
+#### svm-simple.py
+
+检验支持向量机的代码
+
+#### svm-complete.py
+
+无核函数和有核函数的测试，手写数字识别实践
+
+1. kernelTrans: 核转换函数
+
+#### svm-complete_Non-Kernal.py
+
+无核函数的测试
+
+### 7.AdaBoost与RandomForest
+
+随机森林（决策树高级版？）
+
+### 8.PredictiveNumericalDataRegression
+
+逻辑回归预测

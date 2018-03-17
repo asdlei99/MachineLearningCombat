@@ -330,22 +330,22 @@ def setDataCollect(retX, retY):
     searchForSet(retX, retY, 10189, 2008, 5922, 299.99)
     searchForSet(retX, retY, 10196, 2009, 3263, 249.99)
 
-
+# 交叉验证
 def crossValidation(xArr, yArr, numVal=10):
     m = len(yArr)
     indexList = range(m)
-    errorMat = np.zeros(
-        (numVal, 30)
-    )  #create error mat 30columns numVal rows创建error mat 30columns numVal 行
+    # 创造错误矩阵
+    #create error mat 30columns numVal rows创建error mat 30columns numVal 行
+    errorMat = np.zeros((numVal, 30))
     for i in range(numVal):
         trainX = []
         trainY = []
         testX = []
         testY = []
         shuffle(indexList)
-        for j in range(
-                m
-        ):  #create training set based on first 90% of values in indexList
+        # 创造训练数据集
+        #create training set based on first 90% of values in indexList
+        for j in range(m):
             #基于indexList中的前90%的值创建训练集
             if j < m * 0.9:
                 trainX.append(xArr[indexList[j]])
@@ -357,17 +357,16 @@ def crossValidation(xArr, yArr, numVal=10):
         for k in range(30):  #loop over all of the ridge estimates
             matTestX = np.mat(testX)
             matTrainX = np.mat(trainX)
-            meanTrain = np.mean(matTrainX, 0)
-            varTrain = np.var(matTrainX, 0)
-            matTestX = (matTestX - meanTrain
-                        ) / varTrain  #regularize test with training params
-            yEst = matTestX * np.mat(wMat[k, :]).T + np.mean(
-                trainY)  #test ridge results and store
+
+            #regularize test with training params
+            # 测试集与训练集的平均值，除以训练集方差
+            matTestX = (matTestX - np.mean(matTrainX, 0)) / np.var(matTrainX, 0)
+            #test ridge results and store
+            yEst = matTestX * np.mat(wMat[k, :]).T + np.mean(trainY)
             errorMat[i, k] = rssError(yEst.T.A, np.array(testY))
             #print (errorMat[i,k])
-    meanErrors = np.mean(
-        errorMat,
-        0)  #calc avg performance of the different ridge weight vectors
+            #calc avg performance of the different ridge weight vectors
+    meanErrors = np.mean(errorMat, 0)
     minMean = float(min(meanErrors))
     bestWeights = wMat[np.nonzero(meanErrors == minMean)]
     #can unregularize to get model
@@ -384,6 +383,7 @@ def crossValidation(xArr, yArr, numVal=10):
 
 
 # 预测乐高玩具套装的价格 可运行版本，我们把乐高数据存储到了我们的 input 文件夹下，使用 urllib爬取,bs4解析内容
+
 
 # 从页面读取数据，生成retX和retY列表
 def scrapePage(retX, retY, inFile, yr, numPce, origPrc):
