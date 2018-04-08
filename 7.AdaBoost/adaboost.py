@@ -44,7 +44,6 @@ def stump_classify(data_mat, dimen, thresh_val, thresh_ineq):
     :return: np.array
     """
     ret_array = np.ones((np.shape(data_mat)[0], 1))
-    # data_mat[:, dimen] 表示数据集中第dimen列的所有值
     # thresh_ineq == 'lt'表示修改左边的值，gt表示修改右边的值
     # （这里其实我建议理解为转换左右边，就是一棵树的左右孩子，可能有点问题。。。待考证）
     if thresh_ineq == 'lt':
@@ -74,17 +73,22 @@ def build_stump(data_arr, class_labels, D):
     # 无穷大
     min_err = np.inf
     for i in range(n):
+        # 取出每列数据的最大最小值， 计算极差/10.0
         range_min = data_mat[:, i].min()
         range_max = data_mat[:, i].max()
         step_size = (range_max - range_min) / num_steps
+        # 从-1到10进行遍历， 
         for j in range(-1, int(num_steps) + 1):
             for inequal in ['lt', 'gt']:
+                
                 thresh_val = (range_min + float(j) * step_size)
+                # 进行数据分类
                 predicted_vals = stump_classify(data_mat, i, thresh_val,
                                                 inequal)
+                # 构造错误矩阵
                 err_arr = np.mat(np.ones((m, 1)))
                 err_arr[predicted_vals == label_mat] = 0
-                # 这里是矩阵乘法
+                
                 weighted_err = D.T * err_arr
                 '''
                 dim            表示 feature列
@@ -93,6 +97,7 @@ def build_stump(data_arr, class_labels, D):
                 weighted_error  表示整体结果的错误率
                 best_class_est    预测的最优结果 （与class_labels对应）
                 '''
+                # 进行数据更新
                 if weighted_err < min_err:
                     min_err = weighted_err
                     best_class_est = predicted_vals.copy()
@@ -126,21 +131,18 @@ def ada_boost_train_ds(data_arr, class_labels, num_it=40):
         # 保存每个分类器的模型
         weak_class_arr.append(best_stump)
         # 分类正确：乘积为1，不会影响结果，-1主要是下面求e的-alpha次方
-        # 分类错误：乘积为 -1，结果会受影响，所以也乘以 -1
+        # 分类错误：乘积为-1，结果会受影响，所以也乘以-1
         expon = np.multiply(-1 * alpha * np.mat(class_labels).T, class_est)
         # 判断正确的，就乘以-1，否则就乘以1， 为什么？ 书上的公式。
-        # print('(-1取反)预测值 expon=', expon.T)
         # 计算e的expon次方，然后计算得到一个综合的概率的值
         # 结果发现： 判断错误的样本，D对于的样本权重值会变大。
-        # multiply是对应项相乘
-        D = np.multiply(D, np.exp(expon))
-        D = D / D.sum()
+        D = np.multiply(D, np.exp(expon)) / D.sum()
         # 预测的分类结果值，在上一轮结果的基础上，进行加和操作
         agg_class_est += alpha * class_est
-        # sign 判断正为1， 0为0， 负为-1，通过最终加和的权重值，判断符号。
-        # 结果为：错误的样本标签集合，因为是 !=,那么结果就是0 正确, 1 错误
+        # 通过最终加和的权重值，判断符号。返回结果为：错误的样本标签集合
         agg_errors = np.multiply(
             np.sign(agg_class_est) != np.mat(class_labels).T, np.ones((m, 1)))
+        # 计算错误率，如果错误率为0,就可以直接跳出循环
         error_rate = agg_errors.sum() / m
         if error_rate == 0.0:
             break
@@ -182,11 +184,9 @@ def plot_roc(pred_strengths, class_labels):
     y_step = 1 / float(num_pos_class)
     # 负样本的概率
     x_step = 1 / float(len(class_labels) - num_pos_class)
-    # np.argsort函数返回的是数组值从小到大的索引值
-    # get sorted index, it's reverse
+    # 得到排序后的元素索引值
     sorted_indicies = pred_strengths.argsort()
-    # 测试结果是否是从小到大排列
-    # 可以选择打印看一下
+
     # 开始创建模版对象
     fig = plt.figure()
     fig.clf()
