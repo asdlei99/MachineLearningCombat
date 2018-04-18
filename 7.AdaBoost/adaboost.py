@@ -77,10 +77,10 @@ def build_stump(data_arr, class_labels, D):
         range_min = data_mat[:, i].min()
         range_max = data_mat[:, i].max()
         step_size = (range_max - range_min) / num_steps
-        # 从-1到10进行遍历， 
+        # 从-1到10进行遍历，
         for j in range(-1, int(num_steps) + 1):
             for inequal in ['lt', 'gt']:
-                
+
                 thresh_val = (range_min + float(j) * step_size)
                 # 进行数据分类
                 predicted_vals = stump_classify(data_mat, i, thresh_val,
@@ -88,7 +88,7 @@ def build_stump(data_arr, class_labels, D):
                 # 构造错误矩阵
                 err_arr = np.mat(np.ones((m, 1)))
                 err_arr[predicted_vals == label_mat] = 0
-                
+
                 weighted_err = D.T * err_arr
                 '''
                 dim            表示 feature列

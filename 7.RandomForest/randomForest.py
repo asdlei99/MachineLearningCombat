@@ -29,15 +29,16 @@ def cross_validation_split(dataset, n_folds):
         dataset_split    list集合，存放的是：将数据集进行抽重抽样 n_folds 份，数据可以重复重复抽取，每一次list的元素是无重复的
     """
     dataset_split = list()
-    # 复制一份 dataset,防止 dataset 的内容改变
-    dataset_copy = list(dataset).copy()
+    # 复制一份 dataset,防止dataset的内容改变
+    dataset_copy = list(dataset)
     fold_size = len(dataset) / n_folds
     for _ in range(n_folds):
-        fold = list()  # 每次循环 fold 清零，防止重复导入 dataset_split
+        # 每次循环 fold 清零，防止重复导入 dataset_split
+        fold = list()
         while len(fold) < fold_size:
             # 有放回的随机采样，有一些样本被重复采样，从而在训练集中多次出现，有的则从未在训练集中出现，此则自助采样法。从而保证每棵决策树训练集的差异性
             index = randrange(len(dataset_copy))
-            # 将对应索引 index 的内容从 dataset_copy 中导出，并将该内容从 dataset_copy 中删除。
+            # 将对应索引index的内容从dataset_copy中导出，并将该内容从dataset_copy中删除。
             # fold.append(dataset_copy.pop(index))  # 无放回的方式
             fold.append(dataset_copy[index])  # 有放回的方式
         dataset_split.append(fold)
@@ -201,7 +202,6 @@ def subsample(dataset, ratio):
 
     sample = list()
     # 训练样本的按比例抽样。
-    # round() 方法返回浮点数x的四舍五入值。
     n_sample = round(len(dataset) * ratio)
     while len(sample) < n_sample:
         # 有放回的随机采样，有一些样本被重复采样，从而在训练集中多次出现，有的则从未在训练集中出现，此则自助采样法。从而保证每棵决策树训练集的差异性
@@ -271,17 +271,6 @@ def evaluate_algorithm(dataset, algorithm, n_folds, *args):
         train_set = list(folds)
         train_set.remove(fold)
         # 将多个 fold 列表组合成一个 train_set 列表, 类似 union all
-        """
-        In [20]: l1=[[1, 2, 'a'], [11, 22, 'b']]
-        In [21]: l2=[[3, 4, 'c'], [33, 44, 'd']]
-        In [22]: l=[]
-        In [23]: l.append(l1)
-        In [24]: l.append(l2)
-        In [25]: l
-        Out[25]: [[[1, 2, 'a'], [11, 22, 'b']], [[3, 4, 'c'], [33, 44, 'd']]]
-        In [26]: sum(l, [])
-        Out[26]: [[1, 2, 'a'], [11, 22, 'b'], [3, 4, 'c'], [33, 44, 'd']]
-        """
         train_set = sum(train_set, [])
         test_set = list()
         # fold 表示从原始数据集 dataset 提取出来的测试集
