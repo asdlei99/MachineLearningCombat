@@ -1,14 +1,6 @@
 #!/usr/bin/python
 # coding:utf8
-'''
-Created on Feb 4, 2011
-Update on 2017-05-18
-Tree-Based Regression Methods Source Code for Machine Learning in Action Ch. 9
-@author: Peter Harrington/片刻/小瑶
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
-'''
-print(__doc__)
-from numpy import *
+import numpy as np
 
 
 # 默认解析的数据是用tab分隔，并且是数值类型
@@ -23,14 +15,13 @@ def loadDataSet(fileName):
     Raises:
     """
     # 假定最后一列是结果值
-    # assume last column is target value
     dataMat = []
-    fr = open(fileName)
-    for line in fr.readlines():
-        curLine = line.strip().split('\t')
-        #将每行转换成浮点数
-        fltLine = [float(x) for x in curLine]
-        dataMat.append(fltLine)
+    with open(fileName, 'r') as fr:
+        for line in fr.readlines():
+            curLine = line.strip().split('\t')
+            #将每行转换成浮点数
+            fltLine = [float(x) for x in curLine]
+            dataMat.append(fltLine)
     return dataMat
 
 
@@ -53,23 +44,21 @@ def binSplitDataSet(dataSet, feature, value):
 
     # dataSet[:, feature] 取去每一行中，第1列的值(从0开始算)
     # nonzero(dataSet[:, feature] > value)  返回结果为true行的index下标
-    mat0 = dataSet[nonzero(dataSet[:, feature] <= value)[0], :]
-    mat1 = dataSet[nonzero(dataSet[:, feature] > value)[0], :]
+    mat0 = dataSet[np.nonzero(dataSet[:, feature] <= value)[0], :]
+    mat1 = dataSet[np.nonzero(dataSet[:, feature] > value)[0], :]
     return mat0, mat1
 
 
 # 返回每一个叶子结点的均值
-# returns the value used for each leaf
-# 我的理解是：regLeaf 是产生叶节点的函数，就是求均值，即用聚类中心点来代表这类数据
+# regLeaf 是产生叶节点的函数，就是求均值，即用聚类中心点来代表这类数据
 def regLeaf(dataSet):
-    return mean(dataSet[:, -1])
+    return np.mean(dataSet[:, -1])
 
 
 # 计算总方差=方差*样本数
-# 我的理解是：求这组数据的方差，即通过决策树划分，可以让靠近的数据分到同一类中去
+# 求这组数据的方差，即通过决策树划分，可以让靠近的数据分到同一类中去
 def regErr(dataSet):
-    # shape(dataSet)[0] 表示行数
-    return var(dataSet[:, -1]) * shape(dataSet)[0]
+    return np.var(dataSet[:, -1]) * np.shape(dataSet)[0]
 
 
 # 1.用最佳方式切分数据集
@@ -96,24 +85,23 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
     tolN = ops[1]
     #如果数据集的最后一列所有值相等就退出
     #dataSet[:, -1].T.tolist()[0] 取数据集的最后一列，转置为行向量，然后转换为list,取该list中的第一个元素。
-    if len(set(dataSet[:, -1].T.tolist()[0])) == 1: # 如果集合size为1，也就是说全部的数据都是同一个类别，不用继续划分。
+    if len(set(dataSet[:, -1].T.tolist()[
+            0])) == 1:  # 如果集合size为1，也就是说全部的数据都是同一个类别，不用继续划分。
         #  exit cond 1
         return None, leafType(dataSet)
     # 计算行列值
-    m, n = shape(dataSet)
+    _, n = np.shape(dataSet)
     # 无分类误差的总方差和
-    # the choice of the best feature is driven by Reduction in RSS error from mean
     S = errType(dataSet)
-    # inf 正无穷大
-    bestS, bestIndex, bestValue = inf, 0, 0
+    bestS, bestIndex, bestValue = np.inf, 0, 0
     # 循环处理每一列对应的feature值
-    for featIndex in range(n-1): # 对于每个特征
+    for featIndex in range(n - 1):  # 对于每个特征
         # 下面的一行表示的是将某一列全部的数据转换为行，然后设置为list形式
         for splitVal in set(dataSet[:, featIndex].T.tolist()[0]):
             # 对该列进行分组，然后组内的成员的val值进行 二元切分
             mat0, mat1 = binSplitDataSet(dataSet, featIndex, splitVal)
             # 判断二元切分的方式的元素数量是否符合预期
-            if (shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN):
+            if (np.shape(mat0)[0] < tolN) or (np.shape(mat1)[0] < tolN):
                 continue
             newS = errType(mat0) + errType(mat1)
             # 如果二元切分，算出来的误差在可接受范围内，那么就记录切分点，并记录最小误差
@@ -123,13 +111,13 @@ def chooseBestSplit(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
                 bestValue = splitVal
                 bestS = newS
     # 判断二元切分的方式的元素误差是否符合预期
-    # if the decrease (S-bestS) is less than a threshold don't do the split
     if (S - bestS) < tolS:
         return None, leafType(dataSet)
     mat0, mat1 = binSplitDataSet(dataSet, bestIndex, bestValue)
     # 对整体的成员进行判断，是否符合预期
-    # 如果集合的 size 小于 tolN 
-    if (shape(mat0)[0] < tolN) or (shape(mat1)[0] < tolN): # 当最佳划分后，集合过小，也不划分，产生叶节点
+    # 如果集合的 size 小于 tolN
+    if (np.shape(mat0)[0] < tolN) or (np.shape(mat1)[0] <
+                                      tolN):  # 当最佳划分后，集合过小，也不划分，产生叶节点
         return None, leafType(dataSet)
     return bestIndex, bestValue
 
@@ -148,9 +136,7 @@ def createTree(dataSet, leafType=regLeaf, errType=regErr, ops=(1, 4)):
         retTree    决策树最后的结果
     """
     # 选择最好的切分方式： feature索引值，最优切分值
-    # choose the best split
     feat, val = chooseBestSplit(dataSet, leafType, errType, ops)
-    # if the splitting hit a stop condition return val
     # 如果 splitting 达到一个停止条件，那么返回 val
     if feat is None:
         return val
@@ -193,7 +179,7 @@ def getMean(tree):
         tree['right'] = getMean(tree['right'])
     if isTree(tree['left']):
         tree['left'] = getMean(tree['left'])
-    return (tree['left']+tree['right'])/2.0
+    return (tree['left'] + tree['right']) / 2.0
 
 
 # 检查是否适合合并分枝
@@ -208,7 +194,7 @@ def prune(tree, testData):
         tree -- 剪枝完成的树
     """
     # 判断是否测试数据集没有数据，如果没有，就直接返回tree本身的均值
-    if shape(testData)[0] == 0:
+    if np.shape(testData)[0] == 0:
         return getMean(tree)
 
     # 判断分枝是否是dict字典，如果是就将测试数据集进行切分
@@ -224,16 +210,17 @@ def prune(tree, testData):
     # 上面的一系列操作本质上就是将测试数据集按照训练完成的树拆分好，对应的值放到对应的节点
 
     # 如果左右两边同时都不是dict字典，也就是左右两边都是叶节点，而不是子树了，那么分割测试数据集。
-    # 1. 如果正确 
+    # 1. 如果正确
     #   * 那么计算一下总方差 和 该结果集的本身不分枝的总方差比较
     #   * 如果 合并的总方差 < 不合并的总方差，那么就进行合并
     # 注意返回的结果： 如果可以合并，原来的dict就变为了 数值
     if not isTree(tree['left']) and not isTree(tree['right']):
         lSet, rSet = binSplitDataSet(testData, tree['spInd'], tree['spVal'])
         # power(x, y)表示x的y次方
-        errorNoMerge = sum(power(lSet[:, -1] - tree['left'], 2)) + sum(power(rSet[:, -1] - tree['right'], 2))
-        treeMean = (tree['left'] + tree['right'])/2.0
-        errorMerge = sum(power(testData[:, -1] - treeMean, 2))
+        errorNoMerge = sum(np.power(lSet[:, -1] - tree['left'], 2)) + sum(
+            np.power(rSet[:, -1] - tree['right'], 2))
+        treeMean = (tree['left'] + tree['right']) / 2.0
+        errorMerge = sum(np.power(testData[:, -1] - treeMean, 2))
         # 如果 合并的总方差 < 不合并的总方差，那么就进行合并
         if errorMerge < errorNoMerge:
             print("merging")
@@ -245,7 +232,6 @@ def prune(tree, testData):
 
 
 # 得到模型的ws系数：f(x) = x0 + x1*featrue1+ x3*featrue2 ...
-# create linear model and return coeficients
 def modelLeaf(dataSet):
     """
     Desc:
@@ -255,7 +241,7 @@ def modelLeaf(dataSet):
     Returns:
         调用 linearSolve 函数，返回得到的 回归系数ws
     """
-    ws, X, Y = linearSolve(dataSet)
+    ws, _, _ = linearSolve(dataSet)
     return ws
 
 
@@ -272,10 +258,10 @@ def modelErr(dataSet):
     ws, X, Y = linearSolve(dataSet)
     yHat = X * ws
     # print corrcoef(yHat, Y, rowvar=0)
-    return sum(power(Y - yHat, 2))
+    return sum(np.power(Y - yHat, 2))
 
 
- # helper function used in two places
+# helper function used in two places
 def linearSolve(dataSet):
     """
     Desc:
@@ -287,19 +273,21 @@ def linearSolve(dataSet):
         X -- 格式化自变量X
         Y -- 格式化目标变量Y
     """
-    m, n = shape(dataSet)
+    m, n = np.shape(dataSet)
     # 产生一个关于1的矩阵
-    X = mat(ones((m, n)))
-    Y = mat(ones((m, 1)))
+    X = np.mat(np.ones((m, n)))
+    Y = np.mat(np.ones((m, 1)))
     # X的0列为1，常数项，用于计算平衡误差
-    X[:, 1: n] = dataSet[:, 0: n-1]
+    X[:, 1:n] = dataSet[:, 0:n - 1]
     Y = dataSet[:, -1]
 
     # 转置矩阵*矩阵
     xTx = X.T * X
     # 如果矩阵的逆不存在，会造成程序异常
-    if linalg.det(xTx) == 0.0:
-        raise NameError('This matrix is singular, cannot do inverse,\ntry increasing the second value of ops')
+    if np.linalg.det(xTx) == 0.0:
+        raise NameError(
+            'This matrix is singular, cannot do inverse,\ntry increasing the second value of ops'
+        )
     # 最小二乘法求最优解:  w0*1+w1*x1=y
     ws = xTx.I * (X.T * Y)
     return ws, X, Y
@@ -333,9 +321,9 @@ def modelTreeEval(model, inDat):
     Returns:
         float(X * model) -- 将测试数据乘以 回归系数 得到一个预测值 ，转化为 浮点数 返回
     """
-    n = shape(inDat)[1]
-    X = mat(ones((1, n+1)))
-    X[:, 1: n+1] = inDat
+    n = np.shape(inDat)[1]
+    X = np.mat(np.ones((1, n + 1)))
+    X[:, 1:n + 1] = inDat
     # print X, model
     return float(X * model)
 
@@ -383,10 +371,10 @@ def createForeCast(tree, testData, modelEval=regTreeEval):
         返回预测值矩阵
     """
     m = len(testData)
-    yHat = mat(zeros((m, 1)))
+    yHat = np.mat(np.zeros((m, 1)))
     # print yHat
     for i in range(m):
-        yHat[i, 0] = treeForeCast(tree, mat(testData[i]), modelEval)
+        yHat[i, 0] = treeForeCast(tree, np.mat(testData[i]), modelEval)
         # print "yHat==>", yHat[i, 0]
     return yHat
 
@@ -400,8 +388,8 @@ if __name__ == "__main__":
     # print mat0, '\n-----------\n', mat1
 
     # # 回归树
-    # myDat = loadDataSet('input/9.RegTrees/data1.txt')
-    # # myDat = loadDataSet('input/9.RegTrees/data2.txt')
+    # myDat = loadDataSet('Data/data1.txt')
+    # # myDat = loadDataSet('Data/data2.txt')
     # # print 'myDat=', myDat
     # myMat = mat(myDat)
     # # print 'myMat=',  myMat
@@ -409,13 +397,13 @@ if __name__ == "__main__":
     # print myTree
 
     # # 1. 预剪枝就是：提起设置最大误差数和最少元素数
-    # myDat = loadDataSet('input/9.RegTrees/data3.txt')
+    # myDat = loadDataSet('Data/data3.txt')
     # myMat = mat(myDat)
     # myTree = createTree(myMat, ops=(0, 1))
     # print myTree
 
     # # 2. 后剪枝就是：通过测试数据，对预测模型进行合并判断
-    # myDatTest = loadDataSet('input/9.RegTrees/data3test.txt')
+    # myDatTest = loadDataSet('Data/data3test.txt')
     # myMat2Test = mat(myDatTest)
     # myFinalTree = prune(myTree, myMat2Test)
     # print '\n\n\n-------------------'
@@ -423,14 +411,14 @@ if __name__ == "__main__":
 
     # # --------
     # # 模型树求解
-    # myDat = loadDataSet('input/9.RegTrees/data4.txt')
+    # myDat = loadDataSet('Data/data4.txt')
     # myMat = mat(myDat)
     # myTree = createTree(myMat, modelLeaf, modelErr)
     # print myTree
 
     # # 回归树 VS 模型树 VS 线性回归
-    trainMat = mat(loadDataSet('input/9.RegTrees/bikeSpeedVsIq_train.txt'))
-    testMat = mat(loadDataSet('input/9.RegTrees/bikeSpeedVsIq_test.txt'))
+    trainMat = np.mat(loadDataSet('Data/bikeSpeedVsIq_train.txt'))
+    testMat = np.mat(loadDataSet('Data/bikeSpeedVsIq_test.txt'))
     # # 回归树
     myTree1 = createTree(trainMat, ops=(1, 20))
     print(myTree1)
@@ -438,19 +426,19 @@ if __name__ == "__main__":
     print("--------------\n")
     # print yHat1
     # print "ssss==>", testMat[:, 1]
-    print("回归树:", corrcoef(yHat1, testMat[:, 1],rowvar=0)[0, 1])
+    print("回归树:", np.corrcoef(yHat1, testMat[:, 1], rowvar=0)[0, 1])
 
     # 模型树
     myTree2 = createTree(trainMat, modelLeaf, modelErr, ops=(1, 20))
     yHat2 = createForeCast(myTree2, testMat[:, 0], modelTreeEval)
     print(myTree2)
-    print("模型树:", corrcoef(yHat2, testMat[:, 1],rowvar=0)[0, 1])
+    print("模型树:", np.corrcoef(yHat2, testMat[:, 1], rowvar=0)[0, 1])
 
     # 线性回归
     ws, X, Y = linearSolve(trainMat)
     print(ws)
     m = len(testMat[:, 0])
-    yHat3 = mat(zeros((m, 1)))
-    for i in range(shape(testMat)[0]):
-        yHat3[i] = testMat[i, 0]*ws[1, 0] + ws[0, 0]
-    print("线性回归:", corrcoef(yHat3, testMat[:, 1],rowvar=0)[0, 1])
+    yHat3 = np.mat(np.zeros((m, 1)))
+    for i in range(np.shape(testMat)[0]):
+        yHat3[i] = testMat[i, 0] * ws[1, 0] + ws[0, 0]
+    print("线性回归:", np.corrcoef(yHat3, testMat[:, 1], rowvar=0)[0, 1])

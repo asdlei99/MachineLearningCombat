@@ -9,9 +9,9 @@ Tree-Based Regression Methods Source Code for Machine Learning in Action Ch. 9
 《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
 '''
 import regTrees
-from Tkinter import *
-from numpy import *
-
+import numpy as np
+# from Tkinter import *
+import tkinter as tk
 import matplotlib
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -19,7 +19,7 @@ matplotlib.use('TkAgg')
 
 
 def test_widget_text(root):
-    mylabel = Label(root, text="helloworld")
+    mylabel = tk.Label(root, text="helloworld")
     # 相当于告诉 布局管理器(Geometry Manager),如果不设定位置，默认在 0行0列的位置
     mylabel.grid()
 
@@ -52,15 +52,15 @@ def getInputs():
         tolN = int(tolNentry.get())
     except:
         tolN = 10
-        print "enter Integer for tolN"
-        tolNentry.delete(0, END)
+        print("enter Integer for tolN")
+        tolNentry.delete(0, tk.END)
         tolNentry.insert(0, '10')
     try:
         tolS = float(tolSentry.get())
     except:
         tolS = 1.0
-        print "enter Float for tolS"
-        tolSentry.delete(0, END)
+        print("enter Float for tolS")
+        tolSentry.delete(0, tk.END)
         tolSentry.insert(0, '1.0')
     return tolN, tolS
 
@@ -74,32 +74,32 @@ def drawNewTree():
 
 def main(root):
     # 标题
-    Label(root, text="Plot Place Holder").grid(row=0, columnspan=3)
+    tk.Label(root, text="Plot Place Holder").grid(row=0, columnspan=3)
     # 输入栏1, 叶子的数量
-    Label(root, text="tolN").grid(row=1, column=0)
+    tk.Label(root, text="tolN").grid(row=1, column=0)
     global tolNentry
-    tolNentry = Entry(root)
+    tolNentry = tk.Entry(root)
     tolNentry.grid(row=1, column=1)
     tolNentry.insert(0, '10')
     # 输入栏2, 误差量
-    Label(root, text="tolS").grid(row=2, column=0)
+    tk.Label(root, text="tolS").grid(row=2, column=0)
     global tolSentry
-    tolSentry = Entry(root)
+    tolSentry = tk.Entry(root)
     tolSentry.grid(row=2, column=1)
     # 设置输出值
     tolSentry.insert(0,'1.0')
 
     # 设置提交的按钮
-    Button(root, text="确定", command=drawNewTree).grid(row=1, column=2, rowspan=3)
+    tk.Button(root, text="确定", command=drawNewTree).grid(row=1, column=2, rowspan=3)
 
     # 设置复选按钮
     global chkBtnVar
-    chkBtnVar = IntVar()
-    chkBtn = Checkbutton(root, text="Model Tree", variable = chkBtnVar)
+    chkBtnVar = tk.IntVar()
+    chkBtn = tk.Checkbutton(root, text="Model Tree", variable = chkBtnVar)
     chkBtn.grid(row=3, column=0, columnspan=2)
 
     # 退出按钮
-    Button(root, text="退出", fg="black", command=quit).grid(row=1, column=2)
+    tk.Button(root, text="退出", fg="black", command=quit).grid(row=1, column=2)
 
     # 创建一个画板 canvas
     reDraw.f = Figure(figsize=(5, 4), dpi=100)
@@ -107,15 +107,15 @@ def main(root):
     reDraw.canvas.show()
     reDraw.canvas.get_tk_widget().grid(row=0, columnspan=3)
 
-    reDraw.rawDat = mat(regTrees.loadDataSet('testData/RT_sine.txt'))
-    reDraw.testDat = arange(min(reDraw.rawDat[:, 0]), max(reDraw.rawDat[:, 0]), 0.01)
+    reDraw.rawDat = np.mat(regTrees.loadDataSet('testData/RT_sine.txt'))
+    reDraw.testDat = np.arange(min(reDraw.rawDat[:, 0]), max(reDraw.rawDat[:, 0]), 0.01)
     reDraw(1.0, 10)
 
 
 if __name__ == "__main__":
 
     # 创建一个事件
-    root = Tk()
+    root = tk.Tk()
     # test_widget_text(root)
     main(root)
 
