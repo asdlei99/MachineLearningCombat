@@ -22,15 +22,15 @@ def loadDataSet(fileName):
     numFeat = len(open(fileName).readline().split('\t')) - 1
     dataMat = []
     labelMat = []
-    fr = open(fileName)
-    for line in fr.readlines():
-        # 删除一行中以tab分隔的数据前后的空白符号
-        curLine = line.strip().split('\t')
-        # 将数据添加到lineArr List中，每一行数据测试数据组成一个行向量
-        lineArr = [float(curLine[i]) for i in range(numFeat - 1)]
-        # 将测试数据的输入数据部分(X)存储到dataMat, 类别(label)存储到labelMat
-        dataMat.append(lineArr)
-        labelMat.append(float(curLine[-1]))
+    with open(fileName, 'r') as fr:
+        for line in fr.readlines():
+            # 删除一行中以tab分隔的数据前后的空白符号
+            curLine = line.strip().split('\t')
+            # 将数据添加到lineArr List中，每一行数据测试数据组成一个行向量
+            lineArr = [float(curLine[i]) for i in range(numFeat - 1)]
+            # 将测试数据的输入数据部分(X)存储到dataMat, 类别(label)存储到labelMat
+            dataMat.append(lineArr)
+            labelMat.append(float(curLine[-1]))
     return dataMat, labelMat
 
 
@@ -42,6 +42,7 @@ def standRegres(xArr, yArr):
         xArr ：输入的样本数据，包含每个样本数据的 feature
         yArr ：对应于输入数据的类别标签，也就是每个样本对应的目标变量
     Returns:
+        $\beta = (A.T * A)^{-1}*A.T*Y$
         ws：回归系数
     '''
 
@@ -63,28 +64,27 @@ def standRegres(xArr, yArr):
 
 def lwlr(testPoint, xArr, yArr, k=1.0):
     '''
-        Description：
-            局部加权线性回归，在待预测点附近的每个点赋予一定的权重，在子集上基于最小均方差来进行普通的回归。
-        Args：
-            testPoint：样本点
-            xArr：样本的特征数据，即 feature
-            yArr：每个样本对应的类别标签，即目标变量
-            k:关于赋予权重矩阵的核的一个参数，与权重的衰减速率有关
-        Returns:
-            testPoint * ws：数据点与具有权重的系数相乘得到的预测点
-        Notes:
-            这其中会用到计算权重的公式，w = e^((x^((i))-x) / -2k^2)
-            理解：x为某个预测点，x^((i))为样本点，样本点距离预测点越近，贡献的误差越大（权值越大），越远则贡献的误差越小（权值越小）。
-            关于预测点的选取，在我的代码中取的是样本点。其中k是带宽参数，控制w（钟形函数）的宽窄程度，类似于高斯函数的标准差。
-            算法思路：假设预测点取样本点中的第i个样本点（共m个样本点），遍历1到m个样本点（含第i个），算出每一个样本点与预测点的距离，
-            也就可以计算出每个样本贡献误差的权值，可以看出w是一个有m个元素的向量（写成对角阵形式）。
+    Description：
+        局部加权线性回归，在待预测点附近的每个点赋予一定的权重，在子集上基于最小均方差来进行普通的回归。
+    Args：
+        testPoint：样本点
+        xArr：样本的特征数据，即 feature
+        yArr：每个样本对应的类别标签，即目标变量
+        k:关于赋予权重矩阵的核的一个参数，与权重的衰减速率有关
+    Returns:
+        testPoint * ws：数据点与具有权重的系数相乘得到的预测点
+    Notes:
+        这其中会用到计算权重的公式，w = e^((x^((i))-x) / -2k^2)
+        理解：x为某个预测点，x^((i))为样本点，样本点距离预测点越近，贡献的误差越大（权值越大），越远则贡献的误差越小（权值越小）。
+        关于预测点的选取，在我的代码中取的是样本点。其中k是带宽参数，控制w（钟形函数）的宽窄程度，类似于高斯函数的标准差。
+        算法思路：假设预测点取样本点中的第i个样本点（共m个样本点），遍历1到m个样本点（含第i个），算出每一个样本点与预测点的距离，
+        也就可以计算出每个样本贡献误差的权值，可以看出w是一个有m个元素的向量（写成对角阵形式）。
     '''
-    # mat() 函数是将array转换为矩阵的函数， mat().T 是转换为矩阵之后，再进行转置操作
     xMat = np.mat(xArr)
     yMat = np.mat(yArr).T
     # 获得xMat矩阵的行数
     m, _ = np.shape(xMat)
-    # eye()返回一个对角线元素为1，其他元素为0的二维数组，创建权重矩阵weights，该矩阵为每个样本点初始化了一个权重
+    # 创建权重矩阵weights，该矩阵为每个样本点初始化了一个权重
     weights = np.mat(np.eye((m)))
     for j in range(m):
         # testPoint 的形式是 一个行向量的形式
@@ -127,15 +127,15 @@ def lwlrTest(testArr, xArr, yArr, k=1.0):
 
 def lwlrTestPlot(xArr, yArr, k=1.0):
     '''
-        Description:
-            首先将 X 排序，其余的都与lwlrTest相同，这样更容易绘图
-        Args：
-            xArr：样本的特征数据，即 feature
-            yArr：每个样本对应的类别标签，即目标变量，实际值
-            k：控制核函数的衰减速率的有关参数，这里设定的是常量值 1
-        Return：
-            yHat：样本点的估计值
-            xCopy：xArr的复制
+    Description:
+        首先将 X 排序，其余的都与lwlrTest相同，这样更容易绘图
+    Args：
+        xArr：样本的特征数据，即 feature
+        yArr：每个样本对应的类别标签，即目标变量，实际值
+        k：控制核函数的衰减速率的有关参数，这里设定的是常量值 1
+    Return：
+        yHat：样本点的估计值
+        xCopy：xArr的复制
     '''
     # 生成一个与目标变量数目相同的 0 向量
     yHat = np.zeros(np.shape(yArr))
@@ -164,17 +164,18 @@ def rssError(yArr, yHatArr):
 
 def ridgeRegres(xMat, yMat, lam=0.2):
     '''
-        Desc：
-            这个函数实现了给定 lambda 下的岭回归求解。
-            如果数据的特征比样本点还多，就不能再使用上面介绍的的线性回归和局部现行回归了，因为计算 (xTx)^(-1)会出现错误。
-            如果特征比样本点还多（n > m），也就是说，输入数据的矩阵x不是满秩矩阵。非满秩矩阵在求逆时会出现问题。
-            为了解决这个问题，我们下边讲一下：岭回归，这是我们要讲的第一种缩减方法。
-        Args：
-            xMat：样本的特征数据，即 feature
-            yMat：每个样本对应的类别标签，即目标变量，实际值
-            lam：引入的一个λ值，使得矩阵非奇异
-        Returns：
-            经过岭回归公式计算得到的回归系数
+    Desc：
+        这个函数实现了给定 lambda 下的岭回归求解。
+        如果数据的特征比样本点还多，就不能再使用上面介绍的的线性回归和局部现行回归了，因为计算 (xTx)^(-1)会出现错误。
+        如果特征比样本点还多（n > m），也就是说，输入数据的矩阵x不是满秩矩阵。非满秩矩阵在求逆时会出现问题。
+        为了解决这个问题，我们下边讲一下：岭回归，这是我们要讲的第一种缩减方法。
+    Args：
+        xMat：样本的特征数据，即 feature
+        yMat：每个样本对应的类别标签，即目标变量，实际值
+        lam：引入的一个λ值，使得矩阵非奇异
+    Returns：
+        $(X^T*X+\alpha*I)^{-1} * X.T*y$
+        经过岭回归公式计算得到的回归系数
     '''
 
     xTx = xMat.T * xMat
@@ -216,17 +217,15 @@ def ridgeTest(xArr, yArr):
     # 创建30 * m 的全部数据为0 的矩阵
     wMat = np.zeros((numTestPts, np.shape(xMat)[1]))
     for i in range(numTestPts):
-        # exp() 返回 e^x
         ws = ridgeRegres(xMat, yMat, np.exp(i - 10))
         wMat[i, :] = ws.T
     return wMat
 
 
-def regularize(xMat):  # 按列进行规范化
-    inMat = xMat.copy()
-    inMeans = np.mean(inMat, axis=0)  # 计算平均值然后减去它
-    inVar = np.var(inMat, axis=0)  # 计算除以Xi的方差
-    inMat = (inMat - inMeans) / inVar
+def regularize(xMat):
+    # 按列进行规范化(归一化)
+    # 公式： $\frac{X-X.mean()}{X.var()}$=(X-X.mean())/X.var()
+    inMat = (xMat.copy() - np.mean(xMat, axis=0)) / np.var(xMat, axis=0)
     return inMat
 
 
@@ -306,10 +305,7 @@ def searchForSet(retX, retY, setNum, yr, numPce, origPrc):
     for i in range(len(retDict['items'])):
         try:
             currItem = retDict['items'][i]
-            if currItem['product']['condition'] == 'new':
-                newFlag = 1
-            else:
-                newFlag = 0
+            newFlag = 1 if currItem['product']['condition'] == 'new' else 0
             listOfInv = currItem['product']['inventories']
             for item in listOfInv:
                 sellingPrice = item['price']
@@ -330,6 +326,7 @@ def setDataCollect(retX, retY):
     searchForSet(retX, retY, 10189, 2008, 5922, 299.99)
     searchForSet(retX, retY, 10196, 2009, 3263, 249.99)
 
+
 # 交叉验证
 def crossValidation(xArr, yArr, numVal=10):
     m = len(yArr)
@@ -343,8 +340,6 @@ def crossValidation(xArr, yArr, numVal=10):
         testX = []
         testY = []
         shuffle(indexList)
-        # 创造训练数据集
-        #create training set based on first 90% of values in indexList
         for j in range(m):
             #基于indexList中的前90%的值创建训练集
             if j < m * 0.9:
@@ -360,7 +355,8 @@ def crossValidation(xArr, yArr, numVal=10):
 
             #regularize test with training params
             # 测试集与训练集的平均值，除以训练集方差
-            matTestX = (matTestX - np.mean(matTrainX, 0)) / np.var(matTrainX, 0)
+            matTestX = (
+                matTestX - np.mean(matTrainX, 0)) / np.var(matTrainX, 0)
             #test ridge results and store
             yEst = matTestX * np.mat(wMat[k, :]).T + np.mean(trainY)
             errorMat[i, k] = rssError(yEst.T.A, np.array(testY))
