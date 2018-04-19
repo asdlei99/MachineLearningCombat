@@ -1,6 +1,5 @@
+# coding: utf-8
 #!/usr/bin/env python
-__coding__ = "utf-8"
-__author__ = "Ng WaiMing"
 import numpy as np
 from time import sleep
 import matplotlib
@@ -61,7 +60,7 @@ def randCent(dataSet, k):
 
 def kMeans(dataSet, k, distMeas=distEclud, createCent=randCent):
     '''
-    创建K个质心,然后将每个店分配到最近的质心,再重新计算质心。
+    创建K个质心,然后将每个点分配到最近的质心,再重新计算质心。
     这个过程重复数次,直到数据点的簇分配结果不再改变为止
     :param dataSet: 数据集
     :param k: 簇的数目
@@ -94,7 +93,8 @@ def kMeans(dataSet, k, distMeas=distEclud, createCent=randCent):
                     minDist = distJI
                     minIndex = j
             # 如果任一点的簇分配结果发生改变,则更新clusterChanged标志
-            if clusterAssment[i, 0] != minIndex: clusterChanged = True
+            if clusterAssment[i, 0] != minIndex:
+                clusterChanged = True
             # 更新簇分配结果为最小质心的index(索引),minDist(最小距离)的平方
             clusterAssment[i, :] = minIndex, minDist**2
         # print(centroids)

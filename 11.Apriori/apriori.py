@@ -1,15 +1,8 @@
 #!/usr/bin/python
 # coding: utf8
-
-'''
-Created on Mar 24, 2011
-Update  on 2017-05-18
-Ch 11 code
-@author: Peter/片刻
-《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning'''
-print(__doc__)
-from numpy import *
-
+from time import sleep
+# from votesmart import votesmart
+import numpy as np
 # 加载数据集
 def loadDataSet():
     return [[1, 3, 4], [2, 3, 5], [1, 2, 3, 5], [2, 5]]
@@ -57,7 +50,7 @@ def scanD(D, Ck, minSupport):
         for can in Ck:
             # s.issubset(t)  测试是否 s 中的每一个元素都在 t 中
             if can.issubset(tid):
-                if not ssCnt.has_key(can):
+                if can not in ssCnt.keys():
                     ssCnt[can] = 1
                 else:
                     ssCnt[can] += 1
@@ -234,10 +227,9 @@ def generateRules(L, supportData, minConf=0.7):
                 calcConf(freqSet, H1, supportData, bigRuleList, minConf)
     return bigRuleList
 
-
+"""
 def getActionIds():
-    from time import sleep
-    from votesmart import votesmart
+
     # votesmart.apikey = 'get your api key first'
     votesmart.apikey = 'a7fa40adec6f4a77178799fae4441030'
     actionIdList = []
@@ -272,7 +264,7 @@ def getTransList(actionIdList, billTitleList): #this will return a list of lists
         try:
             voteList = votesmart.votes.getBillActionVotes(actionId)
             for vote in voteList:
-                if not transDict.has_key(vote.candidateName):
+                if vote.candidateName not in transDict.keys():
                     transDict[vote.candidateName] = []
                     if vote.officeParties == 'Democratic':
                         transDict[vote.candidateName].append(1)
@@ -286,7 +278,7 @@ def getTransList(actionIdList, billTitleList): #this will return a list of lists
             print ("problem getting actionId: %d" % actionId)
         voteCount += 2
     return transDict, itemMeaning
-
+"""
 
 # 暂时没用上
 # def pntRules(ruleList, itemMeaning):
@@ -355,6 +347,7 @@ def main():
     # # 得到全集的数据
      dataSet = [line.split() for line in open("input/11.Apriori/mushroom.dat").readlines()]
      L, supportData = apriori(dataSet, minSupport=0.3)
+     print(supportData)
     # # 2表示毒蘑菇，1表示可食用的蘑菇
     # # 找出关于2的频繁子项出来，就知道如果是毒蘑菇，那么出现频繁的也可能是毒蘑菇
      for item in L[1]:
