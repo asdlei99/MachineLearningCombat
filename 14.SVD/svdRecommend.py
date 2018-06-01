@@ -8,7 +8,7 @@ Update  on 2017-12-12
 《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
 '''
 from numpy import linalg as la
-from numpy import *
+import numpy as np
 
 
 def loadExData3():
@@ -80,7 +80,7 @@ def pearsSim(inA, inB):
     # 如果不存在，该函数返回1.0，此时两个向量完全相关。
     if len(inA) < 3:
         return 1.0
-    return 0.5 + 0.5 * corrcoef(inA, inB, rowvar=0)[0][1]
+    return 0.5 + 0.5 * np.corrcoef(inA, inB, rowvar=0)[0][1]
 
 
 # 计算余弦相似度，如果夹角为90度，相似度为0；如果两个向量的方向相同，相似度为1.0
@@ -102,7 +102,7 @@ def standEst(dataMat, user, simMeas, item):
         ratSimTotal/simTotal     评分（0～5之间的值）
     """
     # 得到数据集中的物品数目
-    n = shape(dataMat)[1]
+    n = np.shape(dataMat)[1]
     # 初始化两个评分值
     simTotal = 0.0
     ratSimTotal = 0.0
@@ -115,7 +115,7 @@ def standEst(dataMat, user, simMeas, item):
         # 寻找两个用户都评级的物品
         # 变量 overLap 给出的是两个物品当中已经被评分的那个元素的索引ID
         # logical_and 计算x1和x2元素的真值。
-        overLap = nonzero(logical_and(dataMat[:, item].A > 0, dataMat[:, j].A > 0))[0]
+        overLap = np.nonzero(np.logical_and(dataMat[:, item].A > 0, dataMat[:, j].A > 0))[0]
         # 如果相似度为0，则两着没有任何重合元素，终止本次循环
         if len(overLap) == 0:
             similarity = 0
@@ -147,7 +147,7 @@ def svdEst(dataMat, user, simMeas, item):
         ratSimTotal/simTotal     评分（0～5之间的值）
     """
     # 物品数目
-    n = shape(dataMat)[1]
+    n = np.shape(dataMat)[1]
     # 对数据集进行SVD分解
     simTotal = 0.0
     ratSimTotal = 0.0
@@ -159,15 +159,15 @@ def svdEst(dataMat, user, simMeas, item):
     # analyse_data(Sigma, 20)
 
     # 如果要进行矩阵运算，就必须要用这些奇异值构建出一个对角矩阵
-    Sig4 = mat(eye(4) * Sigma[: 4])
+    Sig4 = np.mat(np.eye(4) * Sigma[: 4])
 
     # 利用U矩阵将物品转换到低维空间中，构建转换后的物品(物品+4个主要的特征)
     xformedItems = dataMat.T * U[:, :4] * Sig4.I
-    print('dataMat', shape(dataMat))
-    print('U[:, :4]', shape(U[:, :4]))
-    print('Sig4.I', shape(Sig4.I))
-    print('VT[:4, :]', shape(VT[:4, :]))
-    print('xformedItems', shape(xformedItems))
+    print('dataMat', np.shape(dataMat))
+    print('U[:, :4]', np.shape(U[:, :4]))
+    print('Sig4.I', np.shape(Sig4.I))
+    print('VT[:4, :]', np.shape(VT[:4, :]))
+    print('xformedItems', np.shape(xformedItems))
 
     # 对于给定的用户，for循环在用户对应行的元素上进行遍历
     # 这和standEst()函数中的for循环的目的一样，只不过这里的相似度计算时在低维空间下进行的。
@@ -204,7 +204,7 @@ def recommend(dataMat, user, N=3, simMeas=cosSim, estMethod=standEst):
     """
     # 寻找未评级的物品
     # 对给定的用户建立一个未评分的物品列表
-    unratedItems = nonzero(dataMat[user, :].A == 0)[1]
+    unratedItems = np.nonzero(dataMat[user, :].A == 0)[1]
     # 如果不存在未评分物品，那么就退出函数
     if len(unratedItems) == 0:
         return 'you rated everything'
@@ -243,12 +243,10 @@ def imgLoadData(filename):
     myl = []
     # 打开文本文件，并从文件以数组方式读入字符
     for line in open(filename).readlines():
-        newRow = []
-        for i in range(32):
-            newRow.append(int(line[i]))
+        newRow = [int(line[i]) for i in range(32)]
         myl.append(newRow)
     # 矩阵调入后，就可以在屏幕上输出该矩阵
-    myMat = mat(myl)
+    myMat = np.mat(myl)
     return myMat
 
 
@@ -272,7 +270,7 @@ def imgCompress(numSV=3, thresh=0.8):
         thresh      判断的阈值
     """
     # 构建一个列表
-    myMat = imgLoadData('input/14.SVD/0_5.txt')
+    myMat = imgLoadData('Data/0_5.txt')
 
     print("****original matrix****")
     # 对原始图像进行SVD分解并重构图像e
@@ -281,14 +279,14 @@ def imgCompress(numSV=3, thresh=0.8):
     # 通过Sigma 重新构成SigRecom来实现
     # Sigma是一个对角矩阵，因此需要建立一个全0矩阵，然后将前面的那些奇异值填充到对角线上。
     U, Sigma, VT = la.svd(myMat)
-    # SigRecon = mat(zeros((numSV, numSV)))
+    # SigRecon = np.mat(np.zeros((numSV, numSV)))
     # for k in range(numSV):
     #     SigRecon[k, k] = Sigma[k]
 
     # 分析插入的 Sigma 长度
     analyse_data(Sigma, 20)
 
-    SigRecon = mat(eye(numSV) * Sigma[: numSV])
+    SigRecon = np.mat(np.eye(numSV) * Sigma[: numSV])
     reconMat = U[:, :numSV] * SigRecon * VT[:numSV, :]
     print("****reconstructed matrix using %d singular values *****" % numSV)
     printMat(reconMat, thresh)
@@ -311,22 +309,8 @@ if __name__ == "__main__":
     # Sig3 = mat([[Sigma[0], 0, 0], [0, Sigma[1], 0], [0, 0, Sigma[2]]])
     # print(U[:, :3] * Sig3 * VT[:3, :])
 
-    """
-    # 计算欧氏距离
-    myMat = mat(loadExData())
-    # print(myMat)
-    print(ecludSim(myMat[:, 0], myMat[:, 4]))
-    print(ecludSim(myMat[:, 0], myMat[:, 0]))
-    # 计算余弦相似度
-    print(cosSim(myMat[:, 0], myMat[:, 4]))
-    print(cosSim(myMat[:, 0], myMat[:, 0]))
-    # 计算皮尔逊相关系数
-    print(pearsSim(myMat[:, 0], myMat[:, 4]))
-    print(pearsSim(myMat[:, 0], myMat[:, 0]))
-    """
-
     # 计算相似度的方法
-    myMat = mat(loadExData3())
+    myMat = np.mat(loadExData3())
     # print(myMat)
     # 计算相似度的第一种方式
     print(recommend(myMat, 1, estMethod=svdEst))
