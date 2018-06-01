@@ -1,6 +1,5 @@
 #!/usr/bin/python
 # coding:utf8
-
 '''
 Created on Jun 14, 2011
 Update  on 2017-05-18
@@ -12,7 +11,6 @@ This finds frequent itemsets similar to apriori but does not find association ru
 @author: Peter/片刻
 《机器学习实战》更新地址：https://github.com/apachecn/MachineLearning
 '''
-print(__doc__)
 
 
 class treeNode:
@@ -24,35 +22,34 @@ class treeNode:
         self.parent = parentNode
         self.children = {}
 
+    # inc(对count变量增加给定值)
     def inc(self, numOccur):
-        """inc(对count变量增加给定值)
-        """
         self.count += numOccur
 
+    # disp(用于将树以文本形式显示)
     def disp(self, ind=1):
-        """disp(用于将树以文本形式显示)
-
-        """
-        print('  '*ind, self.name, ' ', self.count)
+        print('  ' * ind, self.name, ' ', self.count)
         for child in self.children.values():
-            child.disp(ind+1)
+            child.disp(ind + 1)
 
 
 def loadSimpDat():
-    simpDat = [['r', 'z', 'h', 'j', 'p'],
-               ['z', 'y', 'x', 'w', 'v', 'u', 't', 's'],
-               ['z'],
-               ['r', 'x', 'n', 'o', 's'],
-            #    ['r', 'x', 'n', 'o', 's'],
-               ['y', 'r', 'x', 'z', 'q', 't', 'p'],
-               ['y', 'z', 'x', 'e', 'q', 's', 't', 'm']]
+    simpDat = [
+        ['r', 'z', 'h', 'j', 'p'],
+        ['z', 'y', 'x', 'w', 'v', 'u', 't', 's'],
+        ['z'],
+        ['r', 'x', 'n', 'o', 's'],
+        #    ['r', 'x', 'n', 'o', 's'],
+        ['y', 'r', 'x', 'z', 'q', 't', 'p'],
+        ['y', 'z', 'x', 'e', 'q', 's', 't', 'm']
+    ]
     return simpDat
 
 
 def createInitSet(dataSet):
     retDict = {}
     for trans in dataSet:
-        if not retDict.has_key(frozenset(trans)):
+        if frozenset(trans) not in retDict.keys():
             retDict[frozenset(trans)] = 1
         else:
             retDict[frozenset(trans)] += 1
@@ -129,9 +126,10 @@ def createTree(dataSet, minSup=1):
             # 例如： {'ababa': 3}  count(a)=3+3+3=9   count(b)=3+3=6
             headerTable[item] = headerTable.get(item, 0) + dataSet[trans]
     # 删除 headerTable中，元素次数<最小支持度的元素
-    for k in list(headerTable.keys()): #python3中.keys()返回的是迭代器不是list,不能在遍历时对其改变。
+    # python3中.keys()返回的是迭代器不是list,不能在遍历时对其改变。
+    for k in list(headerTable.keys()):
         if headerTable[k] < minSup:
-            del(headerTable[k])
+            del (headerTable[k])
 
     # 满足minSup: set(各元素集合)
     freqItemSet = set(headerTable.keys())
@@ -158,7 +156,10 @@ def createTree(dataSet, minSup=1):
         if len(localD) > 0:
             # p=key,value; 所以是通过value值的大小，进行从大到小进行排序
             # orderedItems 表示取出元组的key值，也就是字母本身，但是字母本身是大到小的顺序
-            orderedItems = [v[0] for v in sorted(localD.items(), key=lambda p: p[1], reverse=True)]
+            orderedItems = [
+                v[0] for v in sorted(
+                    localD.items(), key=lambda p: p[1], reverse=True)
+            ]
             # print 'orderedItems=', orderedItems, 'headerTable', headerTable, '\n\n\n'
             # 填充树，通过有序的orderedItems的第一位，进行顺序填充 第一层的子节点。
             updateTree(orderedItems, retTree, headerTable, count)
@@ -248,7 +249,6 @@ def mineTree(inTree, headerTable, minSup, preFix, freqItemList):
 # from time import sleep
 # import re
 
-
 # def getLotsOfTweets(searchStr):
 #     """
 #     获取 100个搜索结果页面
@@ -268,15 +268,13 @@ def mineTree(inTree, headerTable, minSup, preFix, freqItemList):
 #         sleep(6)
 #     return resultsPages
 
-
 # def textParse(bigString):
 #     """
 #     解析页面内容
 #     """
-#     urlsRemoved = re.sub('(http:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*', '', bigString)    
+#     urlsRemoved = re.sub('(http:[/][/]|www.)([a-z]|[A-Z]|[0-9]|[/.]|[~])*', '', bigString)
 #     listOfTokens = re.split(r'\W*', urlsRemoved)
 #     return [tok.lower() for tok in listOfTokens if len(tok) > 2]
-
 
 # def mineTweets(tweetArr, minSup=5):
 #     """
@@ -291,7 +289,6 @@ def mineTree(inTree, headerTable, minSup, preFix, freqItemList):
 #     myFreqList = []
 #     mineTree(myFPtree, myHeaderTab, minSup, set([]), myFreqList)
 #     return myFreqList
-
 
 if __name__ == "__main__":
     # rootNode = treeNode('pyramid', 9, None)
