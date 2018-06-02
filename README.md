@@ -106,8 +106,18 @@ array数组转换为矩阵
 
 ### 7.AdaBoost与RandomForest
 
-随机森林（决策树高级版？）
+随机森林（决策树升级版？）
 
 ### 8.PredictiveNumericalDataRegression
 
 逻辑回归预测
+
+### 9.RegTrees
+
+回归树
+
+回归树、模型树、线性回归的对比
+
+### 10.kmeans
+
+K聚类
