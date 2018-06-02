@@ -1,4 +1,5 @@
-
+import math
+from operator import itemgetter
 def UserSimilarity1(train):
     W = dict()
     for u in train.keys():
@@ -9,6 +10,7 @@ def UserSimilarity1(train):
             W[u][v] /= math.sqrt(len(train[u]) * len(train[v]) * 1.0)
     return W
 
+# 更新16.RecommenderSystems的代码
 def UserSimilarity2(train):
     # build inverse table for item_users
     item_users = dict()
@@ -75,4 +77,3 @@ def Recommend(user, train, W):
                 continue
             rank[i] += wuv * rvi
     return rank
-

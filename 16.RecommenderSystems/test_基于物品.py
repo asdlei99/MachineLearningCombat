@@ -1,9 +1,10 @@
-
+import math
+from operator import itemgetter
 def ItemSimilarity1(train):
     #calculate co-rated users between items
     C = dict()
     N = dict()
-    for u, items in train.items():
+    for users, items in train.items():
         for i in users:
             N[i] += 1
             for j in users:
@@ -23,12 +24,12 @@ def ItemSimilarity2(train):
     #calculate co-rated users between items
     C = dict()
     N = dict()
-    for u, items in train.items():
+    for users, items in train.items():
         for i in users:
             N[i] += 1
             for j in users:
                 if i == j:
-                continue
+                    continue
             C[i][j] += 1 / math.log(1 + len(items) * 1.0)
 
     #calculate finial similarity matrix W
